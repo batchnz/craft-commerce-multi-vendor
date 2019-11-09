@@ -1,0 +1,27 @@
+<?php
+
+namespace thejoshsmith\craftcommercemultivendor\records;
+
+use thejoshsmith\craftcommercemultivendor\Plugin;
+
+use Craft;
+use craft\db\ActiveRecord;
+use yii\db\ActiveQueryInterface;
+
+/**
+ * Vendor Record
+ * @author    Josh Smith
+ * @package   CraftCommerceMultiVendor
+ * @since     1.0.0
+ */
+class Vendor extends ActiveRecord
+{
+    /**
+     * Declares the name of the database table associated with this AR class.
+     * @return string the table name
+     */
+    public static function tableName(): string
+    {
+        return '{{%commerce_multivendor_vendors}}';
+    }
+}
