@@ -1,0 +1,169 @@
+{% extends "commerce/_layouts/cp" %}
+{% set title = vendorType.id ? vendorType.name : 'Create a new vendor type'|t('commerce') %}
+
+{% set crumbs = [
+    { label: "Commerce Settings"|t('commerce'), url: url('commerce/settings') },
+    { label: "Vendor Types"|t('commerce'), url: url('commerce/settings/vendortypes') },
+] %}
+
+{% set selectedSubnavItem = 'settings' %}
+
+{% set fullPageForm = true %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    <input type="hidden" name="action"
+           value="craft-commerce-multi-vendor/vendor-types/save-vendor-type">
+    {{ redirectInput('commerce/settings/vendortypes') }}
+    {% if vendorType.id %}
+        <input type="hidden" name="vendorTypeId" value="{{ vendorType.id }}">
+    {% endif %}
+
+    <div id="vendor-type-settings">
+        {{ forms.textField({
+            first: true,
+            label: "Name"|t('commerce'),
+            instructions: "What this vendor type will be called in the CP."|t('commerce'),
+            id: 'name',
+            name: 'name',
+            value: vendorType.name,
+            errors: vendorType.getErrors('name'),
+            autofocus: true,
+            required: true,
+            translatable: true
+        }) }}
+
+        {{ forms.textField({
+            label: "Handle"|t('commerce'),
+            instructions: "How you’ll refer to this vendor type in the templates."|t('commerce'),
+            id: 'handle',
+            class: 'code',
+            name: 'handle',
+            value: vendorType.handle,
+            errors: vendorType.getErrors('handle'),
+            required: true
+        }) }}
+
+        {% macro templateField(vendorType) %}
+            {% from "_includes/forms" import textField %}
+
+            {{ textField({
+                label: "Vendor Template"|t('commerce'),
+                instructions: "The template to use when a vendor’s URL is requested."|t('commerce'),
+                id: 'template',
+                class: 'ltr',
+                name: 'template',
+                value: vendorType.template,
+                errors: vendorType.getErrors('template')
+            }) }}
+        {% endmacro %}
+
+        {% from _self import uriFormatText %}
+
+        {% set siteRows = [] %}
+        {% set siteErrors = vendorType.getErrors('siteSettings') %}
+
+        {% for site in craft.app.sites.getAllSites() %}
+            {% set siteSettings = vendorType.siteSettings[site.id] ?? null %}
+            {% if siteSettings %}
+                {% for attribute, errors in siteSettings.getErrors() %}
+                    {% set siteErrors = siteErrors|merge(errors) %}
+                {% endfor %}
+            {% endif %}
+            {% set siteRows = siteRows|merge({
+                (site.handle): {
+                    heading: site.name|t('site'),
+                    uriFormat: {
+                        value: siteSettings.uriFormat ?? null,
+                        hasErrors: siteSettings.hasErrors('uriFormat') ?? false
+                    },
+                    template: {
+                        value: siteSettings.template ?? null,
+                        hasErrors: siteSettings.hasErrors('template') ?? false,
+                    }
+                }
+            }) %}
+        {% endfor %}
+
+
+        {{ forms.editableTableField({
+            label: "Site Settings"|t('app'),
+            instructions: "Configure the vendor types’s site-specific settings."|t('app'),
+            id: 'sites',
+            name: 'sites',
+            cols: {
+                heading: {
+                    type: 'heading',
+                    heading: "Site"|t('app'),
+                    class: 'thin'
+                },
+                uriFormat: {
+                    type: 'singleline',
+                    heading: "Vendor URI Format"|t('app'),
+                    info: "What vendor URIs should look like for the site."|t('app'),
+                    placeholder: "Leave blank if vendors don’t have URLs"|t('app'),
+                    code: true
+                },
+                template: {
+                    type: 'singleline',
+                    heading: "Template"|t('app'),
+                    info: "Which template should be loaded when an entry’s URL is requested."|t('app'),
+                    code: true
+                },
+            },
+            rows: siteRows,
+            staticRows: true,
+            errors: siteErrors|unique
+        }) }}
+
+
+    </div>
+
+    {# <div id="tax-and-shipping" class="hidden">
+        <h3>{{ 'Available Shipping Categories'|t('commerce') }} </h3>
+            {% for cat in vendorType.getShippingCategories() %}
+                {% if loop.first %}<ul class="bullets">{% endif %}
+                    {% if currentUser.can('commerce-manageShipping') %}
+                        <li><a href="{{ cat.getCpEditUrl() }}">{{ cat.name }}</a></li>
+                    {% else %}
+                        <li>{{ cat.name }}</li>
+                    {% endif %}
+                {% if loop.last %}</ul>{% endif %}
+            {% endfor %}
+            <br>
+            {% if currentUser.can('commerce-manageShipping') %}<a href="{{ url('commerce/shipping/shippingcategories')}}">{{ 'Manage All Shipping Categories'|t('commerce') }}</a>{% endif %}
+        <hr>
+
+        <h3>{{ 'Available Tax Categories'|t('commerce') }} </h3>
+            {% for cat in vendorType.getTaxCategories() %}
+                {% if loop.first %}<ul class="bullets">{% endif %}
+                    {% if currentUser.can('commerce-manageTax') %}
+                        <li><a href="{{ cat.getCpEditUrl() }}">{{ cat.name }}</a></li>
+                    {% else %}
+                        <li>{{ cat.name }}</li>
+                    {% endif %}
+                {% if loop.last %}</ul>{% endif %}
+            {% endfor %}
+            <br>
+            {% if currentUser.can('commerce-manageTax') %}<a href="{{ url('commerce/tax/taxcategories')}}">{{ 'Manage All Tax Categories'|t('commerce') }}</a>{% endif %}
+    </div> #}
+    <div id="vendor-fields" class="hidden">
+
+        {% include "_includes/fieldlayoutdesigner" with {
+            fieldLayout: vendorType.getVendorFieldLayout(),
+        } only %}
+
+    </div>
+{% endblock %}
+
+{% if brandNewVendorType %}
+    {% js %}
+        new Craft.HandleGenerator('#name', '#handle');
+
+        {% for site in craft.app.sites.getAllSites() %}
+            new Craft.UriFormatGenerator('#name', '#sites tr[data-id="{{ site.handle }}"] textarea[name$="[uriFormat]"]', { suffix: '/{slug}' });
+            new Craft.UriFormatGenerator('#name', '#sites tr[data-id="{{ site.handle }}"] textarea[name$="[template]"]', { suffix: '/_vendor' });
+        {% endfor %}
+    {% endjs %}
+{% endif %}

@@ -1,0 +1,76 @@
+{% extends "craft-commerce-multi-vendor/commerce/_layouts/settings" %}
+
+{% block content %}
+    <h2>{{ "Vendor Types"|t('commerce') }}</h2>
+
+    <div id="no-vendor-types"{% if vendorTypes|length %} class="hidden"{% endif %}>
+        <p>{{ "No vendor types exist yet."|t('commerce') }}</p>
+    </div>
+
+    {% if vendorTypes|length %}
+        <table id="vendortypes" class="data fullwidth collapsible">
+            <thead>
+            <tr>
+                <th scope="col">{{ "Name"|t('commerce') }}</th>
+                <th scope="col">{{ "Handle"|t('commerce') }}</th>
+                {# <th scope="col">{{ "Available Shipping Categories"|t('commerce') }}</th>
+                <th scope="col">{{ "Available Tax Categories"|t('commerce') }}</th> #}
+                <td class="thin"></td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for vendorType in vendorTypes %}
+                <tr data-id="{{ vendorType.id }}"
+                    data-name="{{ vendorType.name }}">
+                    <th scope="row" data-title="{{ 'Name'|t('commerce') }}"><a
+                                href="{{ url('commerce/settings/vendortypes/'~vendorType.id) }}">{{ vendorType.name }}</a>
+                    </th>
+                    <td data-title="{{ 'Handle'|t('commerce') }}"
+                        class="code">{{ vendorType.handle }}</td>
+                    {# <td data-title="{{ 'Available Shipping Categories'|t('commerce') }}">
+                        {% for cat in vendorType.getShippingCategories() %}
+                            {% if loop.first %}<ul>{% endif %}
+                            {% if currentUser.can('commerce-manageShipping') %}
+                                <li><a href="{{ cat.getCpEditUrl() }}">{{ cat.name }}</a></li>
+                            {% else %}
+                                <li>{{ cat.name }}</li>
+                            {% endif %}
+                            {% if loop.last %}</ul>{% endif %}
+                        {% endfor %}
+                    </td>
+                    <td data-title="{{ 'Available Tax Categories'|t('commerce') }}">
+                        {% for cat in vendorType.getTaxCategories() %}
+                            {% if loop.first %}<ul>{% endif %}
+                            {% if currentUser.can('commerce-manageTax') %}
+                                <li><a href="{{ cat.getCpEditUrl() }}">{{ cat.name }}</a></li>
+                            {% else %}
+                                <li>{{ cat.name }}</li>
+                            {% endif %}
+                            {% if loop.last %}</ul>{% endif %}
+                        {% endfor %}
+                    </td> #}
+                    <td class="thin"><a class="delete icon"
+                                        title="{{ 'Delete'|t('commerce') }}"
+                                        role="button"></a></td>
+                </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    {% endif %}
+
+    <div class="buttons">
+        <a href="{{ url('commerce/settings/vendortypes/new') }}"
+           class="btn submit add icon">{{ 'New vendor type'|t('commerce') }}</a>
+    </div>
+{% endblock %}
+
+{% js %}
+    var adminTable = new Craft.AdminTable({
+    tableSelector: '#vendortypes',
+    noObjectsSelector: '#novendortypes',
+    newObjectBtnSelector: '#newvendorTypecontainer',
+    deleteAction: 'commerce/vendor-types/delete-vendor-type',
+    confirmDeleteMessage: '{{ "Are you sure you want to delete “{name}” and all its vendors? Please make sure you have a backup of your database before performing this destructive action."|t('commerce') }}'
+    });
+{% endjs %}

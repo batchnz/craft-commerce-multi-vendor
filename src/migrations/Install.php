@@ -9,6 +9,10 @@ use craft\commerce\db\Table;
 use thejoshsmith\craftcommercemultivendor\records\Order;
 use thejoshsmith\craftcommercemultivendor\records\Transaction;
 use thejoshsmith\craftcommercemultivendor\records\Vendor;
+use thejoshsmith\craftcommercemultivendor\records\VendorType;
+use thejoshsmith\craftcommercemultivendor\records\VendorTypeSite;
+use thejoshsmith\craftcommercemultivendor\records\VendorTypeShippingCategory;
+use thejoshsmith\craftcommercemultivendor\records\VendorTypeTaxCategory;
 
 /**
  * Install migration.
@@ -37,6 +41,7 @@ class Install extends Migration
             $this->createTable(Vendor::tableName(), [
                 'id' => $this->primaryKey(),
                 'token' => $this->string(40),
+                'typeId' => $this->integer()->notNull(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid()
@@ -84,6 +89,58 @@ class Install extends Migration
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid()
             ]);
+
+            $vendorTypeTableSchema = Craft::$app->db->schema->getTableSchema(VendorType::tableName());
+            if( $vendorTypeTableSchema === null ) {
+                $this->createTable(VendorType::tableName(), [
+                    'id' => $this->primaryKey(),
+                    'fieldLayoutId' => $this->integer(),
+                    'name' => $this->string()->notNull(),
+                    'handle' => $this->string()->notNull(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                ]);
+            }
+
+            $vendorTypeSiteTableSchema = Craft::$app->db->schema->getTableSchema(VendorTypeSite::tableName());
+            if( $vendorTypeSiteTableSchema === null ) {
+                $this->createTable(VendorTypeSite::tableName(), [
+                    'id' => $this->primaryKey(),
+                    'vendorTypeId' => $this->integer()->notNull(),
+                    'siteId' => $this->integer()->notNull(),
+                    'uriFormat' => $this->text(),
+                    'template' => $this->string(500),
+                    'hasUrls' => $this->boolean(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                ]);
+            }
+
+            $vendorTypeShippingCategoryTableSchema = Craft::$app->db->schema->getTableSchema(VendorTypeShippingCategory::tableName());
+            if( $vendorTypeShippingCategoryTableSchema === null ) {
+                $this->createTable(VendorTypeShippingCategory::tableName(), [
+                    'id' => $this->primaryKey(),
+                    'vendorTypeId' => $this->integer()->notNull(),
+                    'shippingCategoryId' => $this->integer()->notNull(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                ]);
+            }
+
+            $vendorTypeTaxCategoryTableSchema = Craft::$app->db->schema->getTableSchema(VendorTypeTaxCategory::tableName());
+            if( $vendorTypeTaxCategoryTableSchema === null ) {
+                $this->createTable(VendorTypeTaxCategory::tableName(), [
+                    'id' => $this->primaryKey(),
+                    'vendorTypeId' => $this->integer()->notNull(),
+                    'taxCategoryId' => $this->integer()->notNull(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                ]);
+            }
         }
 
         return true;
@@ -101,7 +158,7 @@ class Install extends Migration
     }
 
     public function addForeignKeys()
-    {   
+    {
         $this->addForeignKey(null, Transaction::tableName(), ['orderId'], Order::tableName(), ['id'], 'CASCADE');
         $this->addForeignKey(null, Transaction::tableName(), ['commerceTransactionId'], Table::TRANSACTIONS, ['id'], 'CASCADE');
         $this->addForeignKey(null, Transaction::tableName(), ['parentId'], Transaction::tableName(), ['id'], 'CASCADE', 'CASCADE');
@@ -135,6 +192,10 @@ class Install extends Migration
 
     public function dropTables()
     {
+        $this->dropTableIfExists(VendorTypeTaxCategory::tableName());
+        $this->dropTableIfExists(VendorTypeShippingCategory::tableName());
+        $this->dropTableIfExists(VendorTypeSite::tableName());
+        $this->dropTableIfExists(VendorType::tableName());
         $this->dropTableIfExists(Transaction::tableName());
         $this->dropTableIfExists(Order::tableName());
         $this->dropTableIfExists(Vendor::tableName());

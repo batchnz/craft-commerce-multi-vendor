@@ -19,12 +19,16 @@ use thejoshsmith\craftcommercemultivendor\elements\Vendor;
 use thejoshsmith\craftcommercemultivendor\elements\Order;
 use thejoshsmith\craftcommercemultivendor\helpers\ArrayHelper;
 use thejoshsmith\craftcommercemultivendor\behaviors\Template;
+use thejoshsmith\craftcommercemultivendor\plugin\Services as CommerceMultiVendorServices;
+use thejoshsmith\craftcommercemultivendor\services\VendorTypes;
 
 use Craft;
 use craft\base\Plugin as CraftPlugin;
 use craft\services\Plugins;
 use craft\events\PluginEvent;
 use craft\services\Elements;
+use craft\services\Fields;
+use craft\services\Sites;
 use craft\web\twig\variables\CraftVariable;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterCpNavItemsEvent;
@@ -37,26 +41,16 @@ use craft\web\View;
 use yii\base\Event;
 
 /**
- * Craft plugins are very much like little applications in and of themselves. We’ve made
- * it as simple as we can, but the training wheels are off. A little prior knowledge is
- * going to be required to write a plugin.
- *
- * For the purposes of the plugin docs, we’re going to assume that you know PHP and SQL,
- * as well as some semi-advanced concepts like object-oriented programming and PHP namespaces.
- *
- * https://craftcms.com/docs/plugins/introduction
+ * Craft Commerce Multi Vendor Plugin
  *
  * @author    Josh Smith
  * @package   Plugin
  * @since     1.0.0
- *
- * @property  VendorsService $vendors
- * @property  PurchasesService $purchases
- * @property  Settings $settings
- * @method    Settings getSettings()
  */
 class Plugin extends CraftPlugin
 {
+    use CommerceMultiVendorServices;
+
     // Static Properties
     // =========================================================================
 
@@ -68,15 +62,15 @@ class Plugin extends CraftPlugin
      */
     public static $instance;
 
-    // /**
-    //  * @inheritdoc
-    //  */
-    // public $hasCpSettings = true;
+    /**
+     * @inheritdoc
+     */
+    public $hasCpSettings = true;
 
-    // /**
-    //  * @inheritdoc
-    //  */
-    // public $hasCpSection = true;
+    /**
+     * @inheritdoc
+     */
+    public $hasCpSection = true;
 
     // Public Properties
     // =========================================================================
@@ -100,12 +94,14 @@ class Plugin extends CraftPlugin
         // Add in our Twig extensions
         Craft::$app->view->registerTwigExtension(new CraftCommerceMultiVendorTwigExtension());
 
+        $this->_setPluginComponents();
         $this->_registerElementTypes();
         $this->_registerVariables();
         $this->_registerCpNavItems();
         $this->_registerRoutes();
         $this->_registerAfterInstall();
         $this->_registerAfterPluginsLoaded();
+        $this->_registerProjectConfigEventListeners();
 
         Craft::info(
             Craft::t(
@@ -218,6 +214,10 @@ class Plugin extends CraftPlugin
             // 'commerce/orders/<orderId:\d+>' => 'craft-commerce-multi-vendor/orders/edit-order',
             // 'commerce/orders/<orderStatusHandle:{handle}>' => 'craft-commerce-multi-vendor/orders/order-index',
 
+            'commerce/settings/vendortypes' => 'craft-commerce-multi-vendor/vendor-types/vendor-type-index',
+            'commerce/settings/vendortypes/<vendorTypeId:\d+>' => 'craft-commerce-multi-vendor/vendor-types/edit-vendor-type',
+            'commerce/settings/vendortypes/new' => 'craft-commerce-multi-vendor/vendor-types/edit-vendor-type',
+
         ], false);
     }
 
@@ -249,5 +249,17 @@ class Plugin extends CraftPlugin
         $view->attachBehavior('TemplateBehavior', Template::class);
         $view->setCpTemplateRoots('commerce', '/var/www/craft-commerce-multi-vendor/src/templates/commerce', 'prepend');
         $view->setCpTemplateRoots('basecommerce', '/var/www/vendor/craftcms/commerce/src/templates');
+    }
+
+    private function _registerProjectConfigEventListeners()
+    {
+        $projectConfigService = Craft::$app->getProjectConfig();
+
+        $vendorTypeService = $this->getVendorTypes();
+        $projectConfigService->onAdd(VendorTypes::CONFIG_VENDORTYPES_KEY . '.{uid}', [$vendorTypeService, 'handleChangedVendorType'])
+            ->onUpdate(VendorTypes::CONFIG_VENDORTYPES_KEY . '.{uid}', [$vendorTypeService, 'handleChangedVendorType'])
+            ->onRemove(VendorTypes::CONFIG_VENDORTYPES_KEY . '.{uid}', [$vendorTypeService, 'handleDeletedVendorType']);
+        Event::on(Fields::class, Fields::EVENT_AFTER_DELETE_FIELD, [$vendorTypeService, 'pruneDeletedField']);
+        Event::on(Sites::class, Sites::EVENT_AFTER_DELETE_SITE, [$vendorTypeService, 'pruneDeletedSite']);
     }
 }
