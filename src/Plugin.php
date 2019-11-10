@@ -15,8 +15,10 @@ use thejoshsmith\craftcommercemultivendor\services\Purchases as PurchasesService
 use thejoshsmith\craftcommercemultivendor\variables\CraftCommerceMultiVendorVariable;
 use thejoshsmith\craftcommercemultivendor\twigextensions\CraftCommerceMultiVendorTwigExtension;
 use thejoshsmith\craftcommercemultivendor\models\Settings;
-use thejoshsmith\craftcommercemultivendor\elements\Vendor as VendorElement;
-use thejoshsmith\craftcommercemultivendor\elements\Purchase as PurchaseElement;
+use thejoshsmith\craftcommercemultivendor\elements\Vendor;
+use thejoshsmith\craftcommercemultivendor\elements\Order;
+use thejoshsmith\craftcommercemultivendor\helpers\ArrayHelper;
+use thejoshsmith\craftcommercemultivendor\behaviors\Template;
 
 use Craft;
 use craft\base\Plugin as CraftPlugin;
@@ -25,6 +27,12 @@ use craft\events\PluginEvent;
 use craft\services\Elements;
 use craft\web\twig\variables\CraftVariable;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterCpNavItemsEvent;
+use craft\events\RegisterUrlRulesEvent;
+use craft\web\UrlManager;
+use craft\web\twig\variables\Cp;
+use craft\events\RegisterTemplateRootsEvent;
+use craft\web\View;
 
 use yii\base\Event;
 
@@ -60,6 +68,16 @@ class Plugin extends CraftPlugin
      */
     public static $instance;
 
+    // /**
+    //  * @inheritdoc
+    //  */
+    // public $hasCpSettings = true;
+
+    // /**
+    //  * @inheritdoc
+    //  */
+    // public $hasCpSection = true;
+
     // Public Properties
     // =========================================================================
 
@@ -70,19 +88,9 @@ class Plugin extends CraftPlugin
      */
     public $schemaVersion = '1.0.0';
 
-    // Public Methods
-    // =========================================================================
-
     /**
-     * Set our $plugin static property to this class so that it can be accessed via
-     * Plugin::$plugin
-     *
-     * Called after the plugin class is instantiated; do any one-time initialization
-     * here such as hooks and events.
-     *
-     * If you have a '/vendor/autoload.php' file, it will be loaded for you automatically;
-     * you do not need to load it in your init() method.
-     *
+     * Plugin initialisation
+     * @return void
      */
     public function init()
     {
@@ -92,56 +100,13 @@ class Plugin extends CraftPlugin
         // Add in our Twig extensions
         Craft::$app->view->registerTwigExtension(new CraftCommerceMultiVendorTwigExtension());
 
-        // Register our elements
-        Event::on(
-            Elements::class,
-            Elements::EVENT_REGISTER_ELEMENT_TYPES,
-            function (RegisterComponentTypesEvent $event) {
-                $event->types[] = VendorElement::class;
-                $event->types[] = PurchaseElement::class;
-            }
-        );
+        $this->_registerElementTypes();
+        $this->_registerVariables();
+        $this->_registerCpNavItems();
+        $this->_registerRoutes();
+        $this->_registerAfterInstall();
+        $this->_registerAfterPluginsLoaded();
 
-        // Register our variables
-        Event::on(
-            CraftVariable::class,
-            CraftVariable::EVENT_INIT,
-            function (Event $event) {
-                /** @var CraftVariable $variable */
-                $variable = $event->sender;
-                $variable->set('craftCommerceMultiVendor', CraftCommerceMultiVendorVariable::class);
-            }
-        );
-
-        // Do something after we're installed
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-                if ($event->plugin === $this) {
-                    // We were just installed
-                }
-            }
-        );
-
-/**
- * Logging in Craft involves using one of the following methods:
- *
- * Craft::trace(): record a message to trace how a piece of code runs. This is mainly for development use.
- * Craft::info(): record a message that conveys some useful information.
- * Craft::warning(): record a warning message that indicates something unexpected has happened.
- * Craft::error(): record a fatal error that should be investigated as soon as possible.
- *
- * Unless `devMode` is on, only Craft::warning() & Craft::error() will log to `craft/storage/logs/web.log`
- *
- * It's recommended that you pass in the magic constant `__METHOD__` as the second parameter, which sets
- * the category to the method (prefixed with the fully qualified class name) where the constant appears.
- *
- * To enable the Yii debug toolbar, go to your user account in the AdminCP and check the
- * [] Show the debug toolbar on the front end & [] Show the debug toolbar on the Control Panel
- *
- * http://www.yiiframework.com/doc-2.0/guide-runtime-logging.html
- */
         Craft::info(
             Craft::t(
                 'craft-commerce-multi-vendor',
@@ -179,5 +144,110 @@ class Plugin extends CraftPlugin
                 'settings' => $this->getSettings()
             ]
         );
+    }
+
+    // Private Methods
+    // =========================================================================
+
+    private function _registerElementTypes()
+    {
+        // Register our elements
+        Event::on(
+            Elements::class,
+            Elements::EVENT_REGISTER_ELEMENT_TYPES,
+            function (RegisterComponentTypesEvent $event) {
+                $event->types[] = Vendor::class;
+                $event->types[] = Order::class;
+            }
+        );
+    }
+
+    private function _registerVariables()
+    {
+        // Register our variables
+        Event::on(
+            CraftVariable::class,
+            CraftVariable::EVENT_INIT,
+            function (Event $event) {
+                /** @var CraftVariable $variable */
+                $variable = $event->sender;
+                $variable->set('craftCommerceMultiVendor', CraftCommerceMultiVendorVariable::class);
+            }
+        );
+    }
+
+    private function _registerCpNavItems()
+    {
+        Event::on(
+            Cp::class,
+            Cp::EVENT_REGISTER_CP_NAV_ITEMS,
+            function(RegisterCpNavItemsEvent $event) {
+
+                $commerceNav = [];
+                foreach ($event->navItems as $i => $navItem) {
+                    if( $navItem['url'] === 'commerce' ){
+                        $commerceNav =& $event->navItems[$i];
+                    }
+                }
+
+                $vendorsNav = [
+                    'vendors' => [
+                        'label' => 'Vendors',
+                        'url' => 'commerce/vendors'
+                    ]
+                ];
+
+                // Merge the vendors nav item
+                ArrayHelper::array_splice_assoc($commerceNav['subnav'], 2, 0, $vendorsNav);
+            }
+        );
+    }
+
+    private function _registerRoutes()
+    {
+        $urlManager = Craft::$app->getUrlManager();
+
+        $urlManager->addRules([
+
+            // Vendor routes
+            'commerce/vendors' => 'craft-commerce-multi-vendor/vendors/vendor-index',
+            'commerce/vendors/<vendorId:\d+>' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
+
+            // Override order routes
+            // 'commerce/orders' => 'craft-commerce-multi-vendor/orders/order-index',
+            // 'commerce/orders/<orderId:\d+>' => 'craft-commerce-multi-vendor/orders/edit-order',
+            // 'commerce/orders/<orderStatusHandle:{handle}>' => 'craft-commerce-multi-vendor/orders/order-index',
+
+        ], false);
+    }
+
+    private function _registerAfterInstall()
+    {
+         // Do something after we're installed
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
+            function (PluginEvent $event) {
+                if ($event->plugin === $this) {
+                    // We were just installed
+                }
+            }
+        );
+    }
+
+    private function _registerAfterPluginsLoaded()
+    {
+        Event::on(Plugins::class, Plugins::EVENT_AFTER_LOAD_PLUGINS, function(Event $event){
+            $this->_registerRoutes();
+            $this->_extendRoutes();
+        });
+    }
+
+    private function _extendRoutes()
+    {
+        $view = Craft::$app->getView();
+        $view->attachBehavior('TemplateBehavior', Template::class);
+        $view->setCpTemplateRoots('commerce', '/var/www/craft-commerce-multi-vendor/src/templates/commerce', 'prepend');
+        $view->setCpTemplateRoots('basecommerce', '/var/www/vendor/craftcms/commerce/src/templates');
     }
 }

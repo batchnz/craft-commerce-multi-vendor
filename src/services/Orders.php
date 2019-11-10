@@ -16,7 +16,7 @@ use Craft;
 use craft\base\Component;
 
 /**
- * Purchases Service
+ * Orders Service
  *
  * All of your plugin’s business logic should go in services, including saving data,
  * retrieving data, etc. They provide APIs that your controllers, template variables,
@@ -28,7 +28,7 @@ use craft\base\Component;
  * @package   CraftCommerceMultiVendor
  * @since     1.0.0
  */
-class Purchases extends Component
+class Orders extends Component
 {
     // Public Methods
     // =========================================================================

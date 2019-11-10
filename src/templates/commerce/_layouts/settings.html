@@ -1,0 +1,10 @@
+{% extends "basecommerce/_layouts/settings" %}
+
+{% block sidebar %}
+	{% set extraNavItems = {
+		'vendors-heading': { heading: "Vendors"|t('craft-commerce-multi-vendor'), minEdition: 'lite' },
+    	'vendortypes': { title: "Vendor Types"|t('craft-commerce-multi-vendor'), minEdition: 'lite' },
+	} %}
+	{% set navItems = navItems|merge(extraNavItems) %}
+	{{parent()}}
+{% endblock %}

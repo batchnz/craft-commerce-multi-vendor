@@ -37,6 +37,8 @@ class Install extends Migration
             $this->createTable(Vendor::tableName(), [
                 'id' => $this->primaryKey(),
                 'token' => $this->string(40),
+                'dateCreated' => $this->dateTime()->notNull(),
+                'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid()
             ]);
         }
@@ -50,6 +52,8 @@ class Install extends Migration
                 'total' => $this->decimal(14,4),
                 'totalPaid' => $this->decimal(14,4),
                 'paidStatus' => $this->enum('type', ['paid','partial','unpaid','overPaid'])->notNull(),
+                'dateCreated' => $this->dateTime()->notNull(),
+                'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid()
             ]);
         }

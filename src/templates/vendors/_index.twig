@@ -1,0 +1,20 @@
+{% extends "_layouts/elementindex" %}
+
+{% set title = "Vendors"|t('commerce') %}
+{% set docTitle = title~' - '~'Commerce' %}
+{% set elementType = 'thejoshsmith\\craftcommercemultivendor\\elements\\Vendor' %}
+{% set selectedTab = 'vendors' %}
+{% set selectedSubnavItem = "vendors" %}
+{% set bodyClass = (bodyClass is defined ? bodyClass~' ' : '') ~ "commercevendors commercevendorsindex" %}
+
+{# Todo, update #}
+{% do craft.app.view.registerTranslations('commerce', [
+    "Export",
+    "Total Revenue",
+    "Last 7 days",
+    "Last 30 days",
+    "Last Week",
+    "Last Month",
+    "Custom Range",
+    "Apply"
+]) %}

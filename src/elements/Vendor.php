@@ -11,6 +11,7 @@
 namespace thejoshsmith\craftcommercemultivendor\elements;
 
 use thejoshsmith\craftcommercemultivendor\Plugin;
+use thejoshsmith\craftcommercemultivendor\elements\db\VendorQuery;
 
 use Craft;
 use craft\base\Element;
@@ -67,11 +68,12 @@ class Vendor extends Element
     // =========================================================================
 
     /**
-     * Some attribute
+     * Payment gateway vendor token identifier
+     * I.e. this is used to store Stripe Connect tokens
      *
      * @var string
      */
-    public $someAttribute = 'Some Default';
+    public $token;
 
     // Static Methods
     // =========================================================================
@@ -171,7 +173,7 @@ class Vendor extends Element
      */
     public static function find(): ElementQueryInterface
     {
-        return new ElementQuery(get_called_class());
+        return new VendorQuery(static::class);
     }
 
     /**
@@ -184,31 +186,35 @@ class Vendor extends Element
      */
     protected static function defineSources(string $context = null): array
     {
-        $sources = [];
+        return [
+            [
+                'key' => '*',
+                'label' => 'All Vendors',
+                'criteria' => []
+            ]
+        ];
+    }
 
-        return $sources;
+    protected static function defineActions(string $source = null): array
+    {
+        return parent::defineActions($source);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected static function defineTableAttributes(): array
+    {
+        return [
+            'title' => ['label' => Craft::t('craft-commerce-multi-vendor', 'Title')],
+            'token' => ['label' => Craft::t('craft-commerce-multi-vendor', 'Token')],
+            'dateCreated' => ['label' => Craft::t('craft-commerce-multi-vendor', 'Date Created')],
+            'dateUpdated' => ['label' => Craft::t('craft-commerce-multi-vendor', 'Date Updated')],
+        ];
     }
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * Returns the validation rules for attributes.
-     *
-     * Validation rules are used by [[validate()]] to check if attribute values are valid.
-     * Child classes may override this method to declare different validation rules.
-     *
-     * More info: http://www.yiiframework.com/doc-2.0/guide-input-validation.html
-     *
-     * @return array
-     */
-    public function rules()
-    {
-        return [
-            ['someAttribute', 'string'],
-            ['someAttribute', 'default', 'value' => 'Some Default'],
-        ];
-    }
 
     /**
      * Returns whether the current user can edit the element.
@@ -218,6 +224,14 @@ class Vendor extends Element
     public function getIsEditable(): bool
     {
         return true;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getName()
+    {
+        return $this->title;
     }
 
     /**
@@ -302,6 +316,22 @@ class Vendor extends Element
      */
     public function afterSave(bool $isNew)
     {
+        if ($isNew) {
+            \Craft::$app->db->createCommand()
+                ->insert('{{%commerce_multivendor_vendors}}', [
+                    'id' => $this->id,
+                    'token' => $this->token,
+                ])
+                ->execute();
+        } else {
+            \Craft::$app->db->createCommand()
+                ->update('{{%commerce_multivendor_vendors}}', [
+                    'token' => $this->token,
+                ], ['id' => $this->id])
+                ->execute();
+        }
+
+        parent::afterSave($isNew);
     }
 
     /**
@@ -344,5 +374,13 @@ class Vendor extends Element
      */
     public function afterMoveInStructure(int $structureId)
     {
+    }
+
+    protected static function defineSortOptions(): array
+    {
+        return [
+            'title' => Craft::t('commerce', 'Title'),
+            'token' => Craft::t('commerce', 'Token'),
+        ];
     }
 }
