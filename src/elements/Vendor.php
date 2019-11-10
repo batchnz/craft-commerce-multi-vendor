@@ -11,12 +11,15 @@
 namespace thejoshsmith\craftcommercemultivendor\elements;
 
 use thejoshsmith\craftcommercemultivendor\Plugin;
+use thejoshsmith\craftcommercemultivendor\models\VendorType;
 use thejoshsmith\craftcommercemultivendor\elements\db\VendorQuery;
+use thejoshsmith\craftcommercemultivendor\records\Vendor as VendorRecord;
 
 use Craft;
 use craft\base\Element;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\UrlHelper;
 
 /**
  * Vendor Element
@@ -75,6 +78,26 @@ class Vendor extends Element
      */
     public $token;
 
+    /**
+     * @var int Vendor type ID
+     */
+    public $typeId;
+
+    /**
+     * @var DateTime Post date
+     */
+    public $postDate;
+
+    /**
+     * @var DateTime Expiry date
+     */
+    public $expiryDate;
+
+    /**
+     * @inheritdoc
+     */
+    public $enabled;
+
     // Static Methods
     // =========================================================================
 
@@ -110,6 +133,14 @@ class Vendor extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public static function hasUris(): bool
+    {
+        return true;
+    }
+
+    /**
      * Returns whether elements of this type have statuses.
      *
      * If this returns `true`, the element index template will show a Status menu
@@ -127,48 +158,6 @@ class Vendor extends Element
 
     /**
      * Creates an [[ElementQueryInterface]] instance for query purpose.
-     *
-     * The returned [[ElementQueryInterface]] instance can be further customized by calling
-     * methods defined in [[ElementQueryInterface]] before `one()` or `all()` is called to return
-     * populated [[ElementInterface]] instances. For example,
-     *
-     * ```php
-     * // Find the entry whose ID is 5
-     * $entry = Entry::find()->id(5)->one();
-     *
-     * // Find all assets and order them by their filename:
-     * $assets = Asset::find()
-     *     ->orderBy('filename')
-     *     ->all();
-     * ```
-     *
-     * If you want to define custom criteria parameters for your elements, you can do so by overriding
-     * this method and returning a custom query class. For example,
-     *
-     * ```php
-     * class Product extends Element
-     * {
-     *     public static function find()
-     *     {
-     *         // use ProductQuery instead of the default ElementQuery
-     *         return new ProductQuery(get_called_class());
-     *     }
-     * }
-     * ```
-     *
-     * You can also set default criteria parameters on the ElementQuery if you don’t have a need for
-     * a custom query class. For example,
-     *
-     * ```php
-     * class Customer extends ActiveRecord
-     * {
-     *     public static function find()
-     *     {
-     *         return parent::find()->limit(50);
-     *     }
-     * }
-     * ```
-     *
      * @return ElementQueryInterface The newly created [[ElementQueryInterface]] instance.
      */
     public static function find(): ElementQueryInterface
@@ -186,13 +175,41 @@ class Vendor extends Element
      */
     protected static function defineSources(string $context = null): array
     {
-        return [
+        $vendorTypes = Plugin::getInstance()->getVendorTypes()->getAllVendorTypes();
+
+        $vendorTypeIds = [];
+
+        foreach ($vendorTypes as $vendorType) {
+            $vendorTypeIds[] = $vendorType->id;
+        }
+
+        $sources = [
             [
                 'key' => '*',
                 'label' => 'All Vendors',
-                'criteria' => []
+                'criteria' => [
+                    'typeId' => $vendorTypeIds
+                ],
+                // 'defaultSort' => ['postDate', 'desc']
             ]
         ];
+
+        $sources[] = ['heading' => Craft::t('craft-commerce-multi-vendor', 'Vendor Types')];
+
+        foreach ($vendorTypes as $vendorType) {
+            $key = 'vendorType:' . $vendorType->uid;
+
+            $sources[$key] = [
+                'key' => $key,
+                'label' => $vendorType->name,
+                'data' => [
+                    'handle' => $vendorType->handle
+                ],
+                'criteria' => ['typeId' => $vendorType->id]
+            ];
+        }
+
+        return $sources;
     }
 
     protected static function defineActions(string $source = null): array
@@ -234,33 +251,50 @@ class Vendor extends Element
         return $this->title;
     }
 
-    /**
-     * Returns the field layout used by this element.
+     /**
+     * Returns the vendor's vendor type.
      *
-     * @return FieldLayout|null
+     * @return VendorType
+     * @throws InvalidConfigException
+     */
+    public function getType(): VendorType
+    {
+        if ($this->typeId === null) {
+            throw new InvalidConfigException('Vendor is missing its vendor type ID');
+        }
+
+        $vendorType = Plugin::getInstance()->getVendorTypes()->getVendorTypeById($this->typeId);
+
+        if (null === $vendorType) {
+            throw new InvalidConfigException('Invalid vendor type ID: ' . $this->typeId);
+        }
+
+        return $vendorType;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCpEditUrl()
+    {
+        $vendorType = $this->getType();
+
+        // The slug *might* not be set if this is a Draft and they've deleted it for whatever reason
+        $url = UrlHelper::cpUrl('commerce/vendors/' . $vendorType->handle . '/' . $this->id . ($this->slug ? '-' . $this->slug : ''));
+
+        if (Craft::$app->getIsMultiSite()) {
+            $url .= '/' . $this->getSite()->handle;
+        }
+
+        return $url;
+    }
+
+    /**
+     * @inheritdoc
      */
     public function getFieldLayout()
     {
-        $tagGroup = $this->getGroup();
-
-        if ($tagGroup) {
-            return $tagGroup->getFieldLayout();
-        }
-
-        return null;
-    }
-
-    public function getGroup()
-    {
-        if ($this->groupId === null) {
-            throw new InvalidConfigException('Tag is missing its group ID');
-        }
-
-        if (($group = Craft::$app->getTags()->getTagGroupById($this->groupId)) === null) {
-            throw new InvalidConfigException('Invalid tag group ID: '.$this->groupId);
-        }
-
-        return $group;
+        return $this->getType()->getFieldLayout();
     }
 
     // Indexes, etc.
@@ -295,43 +329,62 @@ class Vendor extends Element
     // Events
     // -------------------------------------------------------------------------
 
-    /**
-     * Performs actions before an element is saved.
-     *
-     * @param bool $isNew Whether the element is brand new
-     *
-     * @return bool Whether the element should be saved
+   /**
+     * @inheritdoc
      */
     public function beforeSave(bool $isNew): bool
     {
-        return true;
+        // $taxCategoryIds = array_keys($this->getType()->getTaxCategories());
+        // if (!in_array($this->taxCategoryId, $taxCategoryIds, false)) {
+        //     $this->taxCategoryId = $taxCategoryIds[0];
+        // }
+
+        // $shippingCategoryIds = array_keys($this->getType()->getShippingCategories());
+        // if (!in_array($this->shippingCategoryId, $shippingCategoryIds, false)) {
+        //     $this->shippingCategoryId = $shippingCategoryIds[0];
+        // }
+
+        // Make sure the field layout is set correctly
+        $this->fieldLayoutId = $this->getType()->fieldLayoutId;
+
+        if ($this->enabled && !$this->postDate) {
+            // Default the post date to the current date/time
+            $this->postDate = new \DateTime();
+            // ...without the seconds
+            $this->postDate->setTimestamp($this->postDate->getTimestamp() - ($this->postDate->getTimestamp() % 60));
+        }
+
+        return parent::beforeSave($isNew);
     }
 
-    /**
-     * Performs actions after an element is saved.
-     *
-     * @param bool $isNew Whether the element is brand new
-     *
-     * @return void
+     /**
+     * @inheritdoc
      */
     public function afterSave(bool $isNew)
     {
-        if ($isNew) {
-            \Craft::$app->db->createCommand()
-                ->insert('{{%commerce_multivendor_vendors}}', [
-                    'id' => $this->id,
-                    'token' => $this->token,
-                ])
-                ->execute();
+        if (!$isNew) {
+            $record = VendorRecord::findOne($this->id);
+
+            if (!$record) {
+                throw new Exception('Invalid vendor ID: ' . $this->id);
+            }
         } else {
-            \Craft::$app->db->createCommand()
-                ->update('{{%commerce_multivendor_vendors}}', [
-                    'token' => $this->token,
-                ], ['id' => $this->id])
-                ->execute();
+            $record = new VendorRecord();
+            $record->id = $this->id;
         }
 
-        parent::afterSave($isNew);
+        $record->token = $this->token;
+        $record->postDate = $this->postDate;
+        $record->expiryDate = $this->expiryDate;
+        $record->typeId = $this->typeId;
+        // $record->taxCategoryId = $this->taxCategoryId;
+        // $record->shippingCategoryId = $this->shippingCategoryId;
+
+        $record->save(false);
+
+        $this->id = $record->id;
+
+        return parent::afterSave($isNew);
     }
 
     /**

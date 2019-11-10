@@ -12,7 +12,7 @@ namespace thejoshsmith\craftcommercemultivendor;
 
 use thejoshsmith\craftcommercemultivendor\services\Vendors as VendorsService;
 use thejoshsmith\craftcommercemultivendor\services\Purchases as PurchasesService;
-use thejoshsmith\craftcommercemultivendor\variables\CraftCommerceMultiVendorVariable;
+use thejoshsmith\craftcommercemultivendor\variables\CraftCommerceMultiVendorBehavior;
 use thejoshsmith\craftcommercemultivendor\twigextensions\CraftCommerceMultiVendorTwigExtension;
 use thejoshsmith\craftcommercemultivendor\models\Settings;
 use thejoshsmith\craftcommercemultivendor\elements\Vendor;
@@ -160,16 +160,11 @@ class Plugin extends CraftPlugin
 
     private function _registerVariables()
     {
-        // Register our variables
-        Event::on(
-            CraftVariable::class,
-            CraftVariable::EVENT_INIT,
-            function (Event $event) {
-                /** @var CraftVariable $variable */
-                $variable = $event->sender;
-                $variable->set('craftCommerceMultiVendor', CraftCommerceMultiVendorVariable::class);
-            }
-        );
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
+            /** @var CraftVariable $variable */
+            $variable = $event->sender;
+            $variable->attachBehavior('commerceMultiVendor', CraftCommerceMultiVendorBehavior::class);
+        });
     }
 
     private function _registerCpNavItems()
@@ -208,6 +203,11 @@ class Plugin extends CraftPlugin
             // Vendor routes
             'commerce/vendors' => 'craft-commerce-multi-vendor/vendors/vendor-index',
             'commerce/vendors/<vendorId:\d+>' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
+            'commerce/vendors/<vendorTypeHandle:{handle}>' => 'craft-commerce-multi-vendor/vendors/vendor-index',
+            'commerce/vendors/<vendorTypeHandle:{handle}>/new' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
+            'commerce/vendors/<vendorTypeHandle:{handle}>/new/<siteHandle:{handle}>' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
+            'commerce/vendors/<vendorTypeHandle:{handle}>/<vendorId:\d+><slug:(?:-[^\/]*)?>' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
+            'commerce/vendors/<vendorTypeHandle:{handle}>/<vendorId:\d+><slug:(?:-[^\/]*)?>/<siteHandle:{handle}>' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
 
             // Override order routes
             // 'commerce/orders' => 'craft-commerce-multi-vendor/orders/order-index',

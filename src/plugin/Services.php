@@ -3,6 +3,7 @@
 namespace thejoshsmith\craftcommercemultivendor\plugin;
 
 use thejoshsmith\craftcommercemultivendor\services\VendorTypes;
+use thejoshsmith\craftcommercemultivendor\services\Vendors;
 
 /**
  * Trait Services
@@ -13,6 +14,16 @@ trait Services
 {
     // Public Methods
     // =========================================================================
+
+    /**
+     * Returns the products service
+     *
+     * @return Products The products service
+     */
+    public function getVendors(): Vendors
+    {
+        return $this->get('vendors');
+    }
 
     /**
      * Returns the vendorTypes service
@@ -34,6 +45,7 @@ trait Services
     {
         $this->setComponents([
             'vendorTypes' => VendorTypes::class,
+            'vendors' => Vendors::class,
         ]);
     }
 }

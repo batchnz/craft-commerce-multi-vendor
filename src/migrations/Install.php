@@ -41,6 +41,8 @@ class Install extends Migration
             $this->createTable(Vendor::tableName(), [
                 'id' => $this->primaryKey(),
                 'token' => $this->string(40),
+                'postDate' => $this->dateTime(),
+                'expiryDate' => $this->dateTime(),
                 'typeId' => $this->integer()->notNull(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),

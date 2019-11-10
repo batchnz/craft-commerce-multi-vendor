@@ -11,19 +11,13 @@
 namespace thejoshsmith\craftcommercemultivendor\services;
 
 use thejoshsmith\craftcommercemultivendor\Plugin;
+use thejoshsmith\craftcommercemultivendor\elements\Vendor;
 
 use Craft;
 use craft\base\Component;
 
 /**
  * Vendors Service
- *
- * All of your plugin’s business logic should go in services, including saving data,
- * retrieving data, etc. They provide APIs that your controllers, template variables,
- * and other plugins can interact with.
- *
- * https://craftcms.com/docs/plugins/services
- *
  * @author    Josh Smith
  * @package   CraftCommerceMultiVendor
  * @since     1.0.0
@@ -34,22 +28,43 @@ class Vendors extends Component
     // =========================================================================
 
     /**
-     * This function can literally be anything you want, and you can have as many service
-     * functions as you want
+     * Get a vendor by ID.
      *
-     * From any other plugin file, call it like this:
-     *
-     *     CraftCommerceMultiVendor::$plugin->vendors->exampleService()
-     *
-     * @return mixed
+     * @param int $id
+     * @param int $siteId
+     * @return Vendor|null
      */
-    public function exampleService()
+    public function getVendorById(int $id, $siteId = null)
     {
-        $result = 'something';
-        // Check our Plugin's settings for `someAttribute`
-        if (CraftCommerceMultiVendor::$plugin->getSettings()->someAttribute) {
-        }
+        /** @var Vendor $vendor */
+        $vendor = Craft::$app->getElements()->getElementById($id, Vendor::class, $siteId);
 
-        return $result;
+        return $vendor;
     }
+
+    /**
+     * Handle a Site being saved.
+     *
+     * @param SiteEvent $event
+     */
+    public function afterSaveSiteHandler(SiteEvent $event)
+    {
+        $queue = Craft::$app->getQueue();
+        $siteId = $event->oldPrimarySiteId;
+        $elementTypes = [
+            Vendor::class,
+        ];
+
+        foreach ($elementTypes as $elementType) {
+            $queue->push(new ResaveElements([
+                'elementType' => $elementType,
+                'criteria' => [
+                    'siteId' => $siteId,
+                    'status' => null,
+                    'enabledForSite' => false
+                ]
+            ]));
+        }
+    }
+
 }

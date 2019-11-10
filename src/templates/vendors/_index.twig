@@ -7,14 +7,18 @@
 {% set selectedSubnavItem = "vendors" %}
 {% set bodyClass = (bodyClass is defined ? bodyClass~' ' : '') ~ "commercevendors commercevendorsindex" %}
 
-{# Todo, update #}
-{% do craft.app.view.registerTranslations('commerce', [
-    "Export",
-    "Total Revenue",
-    "Last 7 days",
-    "Last 30 days",
-    "Last Week",
-    "Last Month",
-    "Custom Range",
-    "Apply"
-]) %}
+{% js %}
+    if (typeof Craft.CommerceMultiVendor === 'undefined') {
+        Craft.CommerceMultiVendor = {};
+    }
+
+    Craft.CommerceMultiVendor.editableVendorTypes = [
+        {% for vendorType in craft.commerceMultiVendor.vendorTypes.editableVendorTypes %}
+            {id: "{{ vendorType.uid }}", name: "{{ vendorType.name|t('commerce')|e('js') }}", handle: "{{ vendorType.handle|e('js') }}"}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    {% if vendorTypeHandle is defined %}
+        window.defaultVendorTypeHandle = '{{ vendorTypeHandle }}';
+    {% endif %}
+{% endjs %}
