@@ -71,12 +71,18 @@ class Vendor extends Element
     // =========================================================================
 
     /**
-     * Payment gateway vendor token identifier
+     * Payment gateway vendor credentials
      * I.e. this is used to store Stripe Connect tokens
      *
      * @var string
      */
-    public $token;
+    public $stripe_access_token;
+    public $stripe_refresh_token;
+    public $stripe_publishable_key;
+    public $stripe_user_id;
+    public $stripe_token_type;
+    public $stripe_livemode;
+    public $stripe_scope;
 
     /**
      * @var int Vendor type ID
@@ -224,7 +230,7 @@ class Vendor extends Element
     {
         return [
             'title' => ['label' => Craft::t('craft-commerce-multi-vendor', 'Title')],
-            'token' => ['label' => Craft::t('craft-commerce-multi-vendor', 'Token')],
+            'stripe_user_id' => ['label' => Craft::t('craft-commerce-multi-vendor', 'Stripe User ID')],
             'dateCreated' => ['label' => Craft::t('craft-commerce-multi-vendor', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('craft-commerce-multi-vendor', 'Date Updated')],
         ];
@@ -295,6 +301,16 @@ class Vendor extends Element
     public function getFieldLayout()
     {
         return $this->getType()->getFieldLayout();
+    }
+
+    /**
+     * Returns whether this vendor is connected to Stripe
+     * @author Josh Smith <josh@batch.nz>
+     * @return boolean
+     */
+    public function isConnectedToStripe(): bool
+    {
+        return !empty($this->stripe_user_id);
     }
 
     // Indexes, etc.
@@ -373,7 +389,13 @@ class Vendor extends Element
             $record->id = $this->id;
         }
 
-        $record->token = $this->token;
+        $record->stripe_access_token = $this->stripe_access_token;
+        $record->stripe_refresh_token = $this->stripe_refresh_token;
+        $record->stripe_publishable_key = $this->stripe_publishable_key;
+        $record->stripe_user_id = $this->stripe_user_id;
+        $record->stripe_token_type = $this->stripe_token_type;
+        $record->stripe_livemode = $this->stripe_livemode;
+        $record->stripe_scope = $this->stripe_scope;
         $record->postDate = $this->postDate;
         $record->expiryDate = $this->expiryDate;
         $record->typeId = $this->typeId;
@@ -433,7 +455,7 @@ class Vendor extends Element
     {
         return [
             'title' => Craft::t('commerce', 'Title'),
-            'token' => Craft::t('commerce', 'Token'),
+            'stripe_user_id' => Craft::t('commerce', 'Stripe User ID'),
         ];
     }
 }

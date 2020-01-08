@@ -43,6 +43,17 @@ class Vendors extends Component
     }
 
     /**
+     * Returns a Vendor by the passed user Id
+     * @author Josh Smith <josh@batch.nz>
+     * @param  int    $userId
+     * @return Vendor object
+     */
+    public function getVendorByUserId(int $userId): Vendor
+    {
+        return Vendor::find()->relatedTo([$userId])->one();
+    }
+
+    /**
      * Handle a Site being saved.
      *
      * @param SiteEvent $event

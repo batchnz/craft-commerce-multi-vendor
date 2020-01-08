@@ -13,6 +13,7 @@ use thejoshsmith\craftcommercemultivendor\records\VendorType;
 use thejoshsmith\craftcommercemultivendor\records\VendorTypeSite;
 use thejoshsmith\craftcommercemultivendor\records\VendorTypeShippingCategory;
 use thejoshsmith\craftcommercemultivendor\records\VendorTypeTaxCategory;
+use thejoshsmith\craftcommercemultivendor\records\VendorAddress;
 
 /**
  * Install migration.
@@ -40,7 +41,13 @@ class Install extends Migration
         if( $vendorTableSchema === null ) {
             $this->createTable(Vendor::tableName(), [
                 'id' => $this->primaryKey(),
-                'token' => $this->string(40),
+                'stripe_access_token' => $this->string(255),
+                'stripe_refresh_token' => $this->string(255),
+                'stripe_publishable_key' => $this->string(255),
+                'stripe_user_id' => $this->string(255),
+                'stripe_token_type' => $this->string(255),
+                'stripe_livemode' => $this->enum('stripe_livemode', ['0','1'])->defaultValue('1'),
+                'stripe_scope' => $this->string(255),
                 'postDate' => $this->dateTime(),
                 'expiryDate' => $this->dateTime(),
                 'typeId' => $this->integer()->notNull(),
@@ -143,6 +150,18 @@ class Install extends Migration
                     'uid' => $this->uid(),
                 ]);
             }
+
+            $vendorAddressesTableSchema = Craft::$app->db->schema->getTableSchema(VendorAddress::tableName());
+            if( $vendorAddressesTableSchema === null ) {
+                $this->createTable(VendorAddress::tableName(), [
+                    'id' => $this->primaryKey(),
+                    'vendorId' => $this->integer()->notNull(),
+                    'addressId' => $this->integer()->notNull(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                ]);
+            }
         }
 
         return true;
@@ -201,6 +220,7 @@ class Install extends Migration
         $this->dropTableIfExists(Transaction::tableName());
         $this->dropTableIfExists(Order::tableName());
         $this->dropTableIfExists(Vendor::tableName());
+        $this->dropTableIfExists(VendorAddress::tableName());
     }
 
     /**
