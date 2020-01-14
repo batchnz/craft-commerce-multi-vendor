@@ -1,5 +1,5 @@
 {
-    "name": "thejoshsmith/craft-commerce-multi-vendor",
+    "name": "batchnz/craft-commerce-multi-vendor",
     "description": "Support multi vendors on your Craft Commerce store.",
     "type": "craft-plugin",
     "version": "1.0.0-alpha.1",
@@ -11,8 +11,8 @@
         "craft commerce multi vendor"
     ],
     "support": {
-        "docs": "https://github.com/thejoshsmith/craft-commerce-multi-vendor/blob/master/README.md",
-        "issues": "https://github.com/thejoshsmith/craft-commerce-multi-vendor/issues"
+        "docs": "https://github.com/batchnz/craft-commerce-multi-vendor/blob/master/README.md",
+        "issues": "https://github.com/batchnz/craft-commerce-multi-vendor/issues"
     },
     "license": "MIT",
     "authors": [
@@ -27,13 +27,13 @@
     },
     "autoload": {
         "psr-4": {
-          "thejoshsmith\\craftcommercemultivendor\\": "src/"
+          "batchnz\\craftcommercemultivendor\\": "src/"
         }
     },
     "extra": {
         "name": "Craft Commerce Multi Vendor",
         "handle": "craft-commerce-multi-vendor",
-        "changelogUrl": "https://raw.githubusercontent.com/thejoshsmith/craft-commerce-multi-vendor/master/CHANGELOG.md",
-        "class": "thejoshsmith\\craftcommercemultivendor\\Plugin"
+        "changelogUrl": "https://raw.githubusercontent.com/batchnz/craft-commerce-multi-vendor/master/CHANGELOG.md",
+        "class": "batchnz\\craftcommercemultivendor\\Plugin"
     }
 }
