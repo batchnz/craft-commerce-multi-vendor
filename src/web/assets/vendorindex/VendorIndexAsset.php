@@ -1,8 +1,8 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\web\assets\vendorindex;
+namespace batchnz\craftcommercemultivendor\web\assets\vendorindex;
 
-use thejoshsmith\craftcommercemultivendor\web\assets\commercemultivendorcp\CommerceMultiVendorCpAsset;
+use batchnz\craftcommercemultivendor\web\assets\commercemultivendorcp\CommerceMultiVendorCpAsset;
 use craft\web\AssetBundle;
 
 /**

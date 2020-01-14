@@ -1,15 +1,15 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\services;
+namespace batchnz\craftcommercemultivendor\services;
 
-use thejoshsmith\craftcommercemultivendor\elements\Vendor;
-use thejoshsmith\craftcommercemultivendor\events\VendorTypeEvent;
-use thejoshsmith\craftcommercemultivendor\models\VendorType;
-use thejoshsmith\craftcommercemultivendor\models\VendorTypeSite;
-use thejoshsmith\craftcommercemultivendor\records\VendorType as VendorTypeRecord;
-use thejoshsmith\craftcommercemultivendor\records\VendorTypeSite as VendorTypeSiteRecord;
-use thejoshsmith\craftcommercemultivendor\records\VendorTypeTaxCategory;
-use thejoshsmith\craftcommercemultivendor\records\VendorTypeShippingCategory;
+use batchnz\craftcommercemultivendor\elements\Vendor;
+use batchnz\craftcommercemultivendor\events\VendorTypeEvent;
+use batchnz\craftcommercemultivendor\models\VendorType;
+use batchnz\craftcommercemultivendor\models\VendorTypeSite;
+use batchnz\craftcommercemultivendor\records\VendorType as VendorTypeRecord;
+use batchnz\craftcommercemultivendor\records\VendorTypeSite as VendorTypeSiteRecord;
+use batchnz\craftcommercemultivendor\records\VendorTypeTaxCategory;
+use batchnz\craftcommercemultivendor\records\VendorTypeShippingCategory;
 
 use Craft;
 use craft\base\Field;

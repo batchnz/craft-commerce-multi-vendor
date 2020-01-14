@@ -1,10 +1,10 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\models;
+namespace batchnz\craftcommercemultivendor\models;
 
 use Craft;
 use craft\commerce\base\Model;
-use thejoshsmith\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\Plugin;
 use craft\models\Site;
 use yii\base\InvalidConfigException;
 

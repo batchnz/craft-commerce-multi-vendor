@@ -184,7 +184,7 @@ Craft.CommerceMultiVendor.VendorIndex = Craft.BaseElementIndex.extend(
 
             Craft.createElementEditor(this.elementType, {
                 hudTrigger: this.$newVendorBtnVendorType,
-                elementType: 'thejoshsmith\\craftcommercemultivendor\\elements\\Vendor',
+                elementType: 'batchnz\\craftcommercemultivendor\\elements\\Vendor',
                 siteId: this.siteId,
                 attributes: {
                     vendorTypeId: vendorTypeId
@@ -214,4 +214,4 @@ Craft.CommerceMultiVendor.VendorIndex = Craft.BaseElementIndex.extend(
     });
 
 // Register it!
-Craft.registerElementIndexClass('thejoshsmith\\craftcommercemultivendor\\elements\\Vendor', Craft.CommerceMultiVendor.VendorIndex);
+Craft.registerElementIndexClass('batchnz\\craftcommercemultivendor\\elements\\Vendor', Craft.CommerceMultiVendor.VendorIndex);

@@ -1,12 +1,12 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\models;
+namespace batchnz\craftcommercemultivendor\models;
 
 use craft\behaviors\FieldLayoutBehavior;
 use craft\commerce\base\Model;
-use thejoshsmith\craftcommercemultivendor\Vendor;
-use thejoshsmith\craftcommercemultivendor\Plugin;
-use thejoshsmith\craftcommercemultivendor\records\VendorType as VendorTypeRecord;
+use batchnz\craftcommercemultivendor\Vendor;
+use batchnz\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\records\VendorType as VendorTypeRecord;
 use craft\helpers\ArrayHelper;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;

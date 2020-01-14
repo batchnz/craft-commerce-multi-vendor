@@ -8,19 +8,19 @@
  * @copyright Copyright (c) 2019 Josh Smith
  */
 
-namespace thejoshsmith\craftcommercemultivendor;
+namespace batchnz\craftcommercemultivendor;
 
-use thejoshsmith\craftcommercemultivendor\services\Vendors as VendorsService;
-use thejoshsmith\craftcommercemultivendor\services\Purchases as PurchasesService;
-use thejoshsmith\craftcommercemultivendor\variables\CraftCommerceMultiVendorBehavior;
-use thejoshsmith\craftcommercemultivendor\twigextensions\CraftCommerceMultiVendorTwigExtension;
-use thejoshsmith\craftcommercemultivendor\models\Settings;
-use thejoshsmith\craftcommercemultivendor\elements\Vendor;
-use thejoshsmith\craftcommercemultivendor\elements\Order;
-use thejoshsmith\craftcommercemultivendor\helpers\ArrayHelper;
-use thejoshsmith\craftcommercemultivendor\behaviors\Template;
-use thejoshsmith\craftcommercemultivendor\plugin\Services as CommerceMultiVendorServices;
-use thejoshsmith\craftcommercemultivendor\services\VendorTypes;
+use batchnz\craftcommercemultivendor\services\Vendors as VendorsService;
+use batchnz\craftcommercemultivendor\services\Purchases as PurchasesService;
+use batchnz\craftcommercemultivendor\variables\CraftCommerceMultiVendorBehavior;
+use batchnz\craftcommercemultivendor\twigextensions\CraftCommerceMultiVendorTwigExtension;
+use batchnz\craftcommercemultivendor\models\Settings;
+use batchnz\craftcommercemultivendor\elements\Vendor;
+use batchnz\craftcommercemultivendor\elements\Order;
+use batchnz\craftcommercemultivendor\helpers\ArrayHelper;
+use batchnz\craftcommercemultivendor\behaviors\Template;
+use batchnz\craftcommercemultivendor\plugin\Services as CommerceMultiVendorServices;
+use batchnz\craftcommercemultivendor\services\VendorTypes;
 
 use Craft;
 use craft\base\Plugin as CraftPlugin;

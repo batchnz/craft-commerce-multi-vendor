@@ -1,5 +1,5 @@
 <?php
-namespace thejoshsmith\craftcommercemultivendor\records;
+namespace batchnz\craftcommercemultivendor\records;
 
 use craft\db\ActiveRecord;
 use yii\db\ActiveQueryInterface;

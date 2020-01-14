@@ -1,9 +1,9 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\plugin;
+namespace batchnz\craftcommercemultivendor\plugin;
 
-use thejoshsmith\craftcommercemultivendor\services\VendorTypes;
-use thejoshsmith\craftcommercemultivendor\services\Vendors;
+use batchnz\craftcommercemultivendor\services\VendorTypes;
+use batchnz\craftcommercemultivendor\services\Vendors;
 
 /**
  * Trait Services

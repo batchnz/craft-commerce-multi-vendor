@@ -1,10 +1,10 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\controllers;
+namespace batchnz\craftcommercemultivendor\controllers;
 
-use thejoshsmith\craftcommercemultivendor\web\assets\vendorindex\VendorIndexAsset;
-use thejoshsmith\craftcommercemultivendor\Plugin;
-use thejoshsmith\craftcommercemultivendor\elements\Vendor;
+use batchnz\craftcommercemultivendor\web\assets\vendorindex\VendorIndexAsset;
+use batchnz\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\elements\Vendor;
 
 use Craft;
 use craft\base\Element;

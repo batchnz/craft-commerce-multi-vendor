@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2019 Josh Smith
  */
 
-namespace thejoshsmith\craftcommercemultivendor\assetbundles\CraftCommerceMultiVendor;
+namespace batchnz\craftcommercemultivendor\assetbundles\CraftCommerceMultiVendor;
 
 use Craft;
 use craft\web\AssetBundle;
@@ -43,7 +43,7 @@ class CraftCommerceMultiVendorAsset extends AssetBundle
     public function init()
     {
         // define the path that your publishable resources live
-        $this->sourcePath = "@thejoshsmith/craftcommercemultivendor/assetbundles/craftcommercemultivendor/dist";
+        $this->sourcePath = "@batchnz/craftcommercemultivendor/assetbundles/craftcommercemultivendor/dist";
 
         // define the dependencies
         $this->depends = [

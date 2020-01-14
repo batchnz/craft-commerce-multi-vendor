@@ -1,15 +1,15 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\records;
+namespace batchnz\craftcommercemultivendor\records;
 
-use thejoshsmith\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\Plugin;
 
 use Craft;
 use craft\db\ActiveRecord;
 use craft\records\User;
 use craft\commerce\records\Transaction as CommerceTransaction;
-use thejoshsmith\craftcommercemultivendor\records\Vendor;
-use thejoshsmith\craftcommercemultivendor\records\Order as VendorOrder;
+use batchnz\craftcommercemultivendor\records\Vendor;
+use batchnz\craftcommercemultivendor\records\Order as VendorOrder;
 use yii\db\ActiveQueryInterface;
 
 /**
@@ -42,7 +42,7 @@ class Transaction extends CommerceTransaction
      */
     public function getVendor(): ActiveQueryInterface
     {
-        return $this->hasOne(Vendor::class, ['id' => 'vendorId']);   
+        return $this->hasOne(Vendor::class, ['id' => 'vendorId']);
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\helpers;
+namespace batchnz\craftcommercemultivendor\helpers;
 
 /**
  * @author    nystudio107
@@ -23,6 +23,6 @@ class ArrayHelper extends \craft\helpers\ArrayHelper
         }
         $input = array_slice($input, 0, $offset, TRUE)
                 + $replacement
-                + array_slice($input, $offset + $length, NULL, TRUE); 
+                + array_slice($input, $offset + $length, NULL, TRUE);
     }
 }

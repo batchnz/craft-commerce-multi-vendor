@@ -8,9 +8,9 @@
  * @copyright Copyright (c) 2019 Josh Smith
  */
 
-namespace thejoshsmith\craftcommercemultivendor\elements;
+namespace batchnz\craftcommercemultivendor\elements;
 
-use thejoshsmith\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\Plugin;
 
 use Craft;
 use craft\base\Element;

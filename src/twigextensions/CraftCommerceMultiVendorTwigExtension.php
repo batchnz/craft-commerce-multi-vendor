@@ -8,9 +8,9 @@
  * @copyright Copyright (c) 2019 Josh Smith
  */
 
-namespace thejoshsmith\craftcommercemultivendor\twigextensions;
+namespace batchnz\craftcommercemultivendor\twigextensions;
 
-use thejoshsmith\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\Plugin;
 
 use Craft;
 

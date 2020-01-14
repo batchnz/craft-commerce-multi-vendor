@@ -1,19 +1,19 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\migrations;
+namespace batchnz\craftcommercemultivendor\migrations;
 
 use Craft;
 use craft\db\Migration;
 use craft\helpers\MigrationHelper;
 use craft\commerce\db\Table;
-use thejoshsmith\craftcommercemultivendor\records\Order;
-use thejoshsmith\craftcommercemultivendor\records\Transaction;
-use thejoshsmith\craftcommercemultivendor\records\Vendor;
-use thejoshsmith\craftcommercemultivendor\records\VendorType;
-use thejoshsmith\craftcommercemultivendor\records\VendorTypeSite;
-use thejoshsmith\craftcommercemultivendor\records\VendorTypeShippingCategory;
-use thejoshsmith\craftcommercemultivendor\records\VendorTypeTaxCategory;
-use thejoshsmith\craftcommercemultivendor\records\VendorAddress;
+use batchnz\craftcommercemultivendor\records\Order;
+use batchnz\craftcommercemultivendor\records\Transaction;
+use batchnz\craftcommercemultivendor\records\Vendor;
+use batchnz\craftcommercemultivendor\records\VendorType;
+use batchnz\craftcommercemultivendor\records\VendorTypeSite;
+use batchnz\craftcommercemultivendor\records\VendorTypeShippingCategory;
+use batchnz\craftcommercemultivendor\records\VendorTypeTaxCategory;
+use batchnz\craftcommercemultivendor\records\VendorAddress;
 
 /**
  * Install migration.

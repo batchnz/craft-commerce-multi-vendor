@@ -1,8 +1,8 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\records;
+namespace batchnz\craftcommercemultivendor\records;
 
-use thejoshsmith\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\Plugin;
 
 use Craft;
 use craft\db\ActiveRecord;

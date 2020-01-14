@@ -1,15 +1,15 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\records;
+namespace batchnz\craftcommercemultivendor\records;
 
-use thejoshsmith\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\Plugin;
 
 use Craft;
 use craft\db\ActiveRecord;
 use craft\records\Element;
 use craft\commerce\db\Table;
 use craft\commerce\records\Order as CommerceOrder;
-use thejoshsmith\craftcommercemultivendor\records\Vendor;
+use batchnz\craftcommercemultivendor\records\Vendor;
 use yii\db\ActiveQueryInterface;
 
 /**

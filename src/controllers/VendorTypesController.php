@@ -1,11 +1,11 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\controllers;
+namespace batchnz\craftcommercemultivendor\controllers;
 
-use thejoshsmith\craftcommercemultivendor\Plugin;
-use thejoshsmith\craftcommercemultivendor\elements\Vendor;
-use thejoshsmith\craftcommercemultivendor\models\VendorType;
-use thejoshsmith\craftcommercemultivendor\models\VendorTypeSite;
+use batchnz\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\elements\Vendor;
+use batchnz\craftcommercemultivendor\models\VendorType;
+use batchnz\craftcommercemultivendor\models\VendorTypeSite;
 
 use Craft;
 use craft\commerce\controllers\BaseAdminController;

@@ -1,6 +1,6 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\behaviors;
+namespace batchnz\craftcommercemultivendor\behaviors;
 
 use yii\db\ActiveRecord;
 use yii\base\Behavior;

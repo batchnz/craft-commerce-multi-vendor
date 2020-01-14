@@ -1,5 +1,5 @@
 <?php
-namespace thejoshsmith\craftcommercemultivendor\elements\db;
+namespace batchnz\craftcommercemultivendor\elements\db;
 
 use craft\db\Query;
 use craft\elements\db\ElementQuery;

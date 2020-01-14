@@ -8,12 +8,12 @@
  * @copyright Copyright (c) 2019 Josh Smith
  */
 
-namespace thejoshsmith\craftcommercemultivendor\elements;
+namespace batchnz\craftcommercemultivendor\elements;
 
-use thejoshsmith\craftcommercemultivendor\Plugin;
-use thejoshsmith\craftcommercemultivendor\models\VendorType;
-use thejoshsmith\craftcommercemultivendor\elements\db\VendorQuery;
-use thejoshsmith\craftcommercemultivendor\records\Vendor as VendorRecord;
+use batchnz\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\models\VendorType;
+use batchnz\craftcommercemultivendor\elements\db\VendorQuery;
+use batchnz\craftcommercemultivendor\records\Vendor as VendorRecord;
 
 use Craft;
 use craft\base\Element;

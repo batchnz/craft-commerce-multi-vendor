@@ -8,9 +8,9 @@
  * @copyright Copyright (c) 2019 Josh Smith
  */
 
-namespace thejoshsmith\craftcommercemultivendor\variables;
+namespace batchnz\craftcommercemultivendor\variables;
 
-use thejoshsmith\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\Plugin;
 use yii\base\Behavior;
 
 use Craft;
@@ -38,7 +38,7 @@ class CraftCommerceMultiVendorBehavior extends Behavior
     {
         parent::init();
 
-        // Point `craft.commerceMultiVendor` to the thejoshsmith\craftcommercemultivendor\Plugin instance
+        // Point `craft.commerceMultiVendor` to the batchnz\craftcommercemultivendor\Plugin instance
         $this->commerceMultiVendor = Plugin::getInstance();
     }
 }

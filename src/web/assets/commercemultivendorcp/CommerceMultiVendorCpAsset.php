@@ -1,6 +1,6 @@
 <?php
 
-namespace thejoshsmith\craftcommercemultivendor\web\assets\commercemultivendorcp;
+namespace batchnz\craftcommercemultivendor\web\assets\commercemultivendorcp;
 
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
