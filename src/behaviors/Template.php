@@ -2,6 +2,7 @@
 
 namespace batchnz\craftcommercemultivendor\behaviors;
 
+use Craft;
 use yii\db\ActiveRecord;
 use yii\base\Behavior;
 
@@ -20,6 +21,9 @@ class Template extends Behavior
     {
         // Generate control panel template routes if we haven't already
         $this->owner->getCpTemplateRoots();
+
+        // Parse out any aliases
+        $basePath = Craft::getAlias($basePath);
 
         // ** HACK ALERT **
         // There's currently no way to override CP or plugin templates in Craft,

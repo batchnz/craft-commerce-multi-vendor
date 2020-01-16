@@ -40,6 +40,8 @@ use craft\web\View;
 
 use yii\base\Event;
 
+use yii\BaseYii;
+
 /**
  * Craft Commerce Multi Vendor Plugin
  *
@@ -247,8 +249,8 @@ class Plugin extends CraftPlugin
     {
         $view = Craft::$app->getView();
         $view->attachBehavior('TemplateBehavior', Template::class);
-        $view->setCpTemplateRoots('commerce', '/var/www/craft-commerce-multi-vendor/src/templates/commerce', 'prepend');
-        $view->setCpTemplateRoots('basecommerce', '/var/www/vendor/craftcms/commerce/src/templates');
+        $view->setCpTemplateRoots('commerce', '@batchnz/craftcommercemultivendor/templates/commerce', 'prepend');
+        $view->setCpTemplateRoots('basecommerce', '@craft/commerce/templates');
     }
 
     private function _registerProjectConfigEventListeners()
