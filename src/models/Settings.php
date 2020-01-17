@@ -35,11 +35,19 @@ class Settings extends Model
     // =========================================================================
 
     /**
-     * Some field model attribute
+     * The amount of commission charged
      *
      * @var string
      */
-    public $someAttribute = 'Some Default';
+    public $commission = 0.00;
+
+    /**
+     * The type of commission charged by the platform
+     * Can be `percentage` or `amount`
+     *
+     * @var string
+     */
+    public $commissionType = 'percentage';
 
     // Public Methods
     // =========================================================================
@@ -57,8 +65,11 @@ class Settings extends Model
     public function rules()
     {
         return [
-            ['someAttribute', 'string'],
-            ['someAttribute', 'default', 'value' => 'Some Default'],
+            [['commissionType', 'commission'], 'required'],
+            ['commissionType', 'string'],
+            ['commissionType', 'default', 'value' => 'percentage'],
+            ['commission', 'double', 'min' => '0'],
+            ['commission', 'default', 'value' => '0.00'],
         ];
     }
 }

@@ -1,0 +1,43 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% set title = 'Platform Settings' %}
+
+{% block content %}
+
+<form action="" method="post">
+    {{ csrfInput() }}
+
+    {{ forms.hidden({
+        name: 'action',
+        value: 'plugins/save-plugin-settings'
+    }) }}
+
+    {{ forms.hidden({
+        name: 'pluginHandle',
+        value: 'craft-commerce-multi-vendor'
+    }) }}
+
+
+    {{ forms.selectField({
+        label: 'Select Commission Type',
+        instructions: 'Choose whether the commission is charged at a percentage or a fixed amount.',
+        id: 'commissionType',
+        name: 'settings[commissionType]',
+        options: {'percentage': 'Percentage', 'amount': 'Amount'},
+        value: settings['commissionType']})
+    }}
+
+    {{ forms.textField({
+        label: 'Commission Rate',
+        instructions: 'Enter the rate at which the platform charges its commission at.',
+        id: 'commission',
+        unit: '',
+        name: 'settings[commission]',
+        value: settings['commission']})
+    }}
+
+    <input type="submit" class="submit btn" value="{{ 'Save'|t }}">
+</form>
+
+{% endblock %}

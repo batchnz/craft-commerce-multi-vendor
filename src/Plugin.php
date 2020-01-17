@@ -53,6 +53,8 @@ class Plugin extends CraftPlugin
 {
     use CommerceMultiVendorServices;
 
+    const PLUGIN_HANDLE = 'craft-commerce-multi-vendor';
+
     // Static Properties
     // =========================================================================
 
@@ -67,7 +69,7 @@ class Plugin extends CraftPlugin
     /**
      * @inheritdoc
      */
-    public $hasCpSettings = true;
+    public $hasCpSettings = false;
 
     /**
      * @inheritdoc
@@ -96,6 +98,7 @@ class Plugin extends CraftPlugin
         // Add in our Twig extensions
         Craft::$app->view->registerTwigExtension(new CraftCommerceMultiVendorTwigExtension());
 
+        $this->_registerCpSectionRoute();
         $this->_setPluginComponents();
         $this->_registerElementTypes();
         $this->_registerVariables();
@@ -107,12 +110,19 @@ class Plugin extends CraftPlugin
 
         Craft::info(
             Craft::t(
-                'craft-commerce-multi-vendor',
+                self::PLUGIN_HANDLE,
                 '{name} plugin loaded',
                 ['name' => $this->name]
             ),
             __METHOD__
         );
+    }
+
+    public function getCpNavItem()
+    {
+        $parent = parent::getCpNavItem();
+        $parent['label'] = 'Platform Settings';
+        return $parent;
     }
 
     // Protected Methods
@@ -137,7 +147,7 @@ class Plugin extends CraftPlugin
     protected function settingsHtml(): string
     {
         return Craft::$app->view->renderTemplate(
-            'craft-commerce-multi-vendor/settings',
+            self::PLUGIN_HANDLE.'/settings',
             [
                 'settings' => $this->getSettings()
             ]
@@ -146,6 +156,17 @@ class Plugin extends CraftPlugin
 
     // Private Methods
     // =========================================================================
+
+    private function _registerCpSectionRoute()
+    {
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+            function(RegisterUrlRulesEvent $event) {
+                $event->rules[self::PLUGIN_HANDLE.''] = self::PLUGIN_HANDLE.'/settings';
+            }
+        );
+    }
 
     private function _registerElementTypes()
     {
@@ -203,22 +224,22 @@ class Plugin extends CraftPlugin
         $urlManager->addRules([
 
             // Vendor routes
-            'commerce/vendors' => 'craft-commerce-multi-vendor/vendors/vendor-index',
-            'commerce/vendors/<vendorId:\d+>' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
-            'commerce/vendors/<vendorTypeHandle:{handle}>' => 'craft-commerce-multi-vendor/vendors/vendor-index',
-            'commerce/vendors/<vendorTypeHandle:{handle}>/new' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
-            'commerce/vendors/<vendorTypeHandle:{handle}>/new/<siteHandle:{handle}>' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
-            'commerce/vendors/<vendorTypeHandle:{handle}>/<vendorId:\d+><slug:(?:-[^\/]*)?>' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
-            'commerce/vendors/<vendorTypeHandle:{handle}>/<vendorId:\d+><slug:(?:-[^\/]*)?>/<siteHandle:{handle}>' => 'craft-commerce-multi-vendor/vendors/edit-vendor',
+            'commerce/vendors' => self::PLUGIN_HANDLE.'/vendors/vendor-index',
+            'commerce/vendors/<vendorId:\d+>' => self::PLUGIN_HANDLE.'/vendors/edit-vendor',
+            'commerce/vendors/<vendorTypeHandle:{handle}>' => self::PLUGIN_HANDLE.'/vendors/vendor-index',
+            'commerce/vendors/<vendorTypeHandle:{handle}>/new' => self::PLUGIN_HANDLE.'/vendors/edit-vendor',
+            'commerce/vendors/<vendorTypeHandle:{handle}>/new/<siteHandle:{handle}>' => self::PLUGIN_HANDLE.'/vendors/edit-vendor',
+            'commerce/vendors/<vendorTypeHandle:{handle}>/<vendorId:\d+><slug:(?:-[^\/]*)?>' => self::PLUGIN_HANDLE.'/vendors/edit-vendor',
+            'commerce/vendors/<vendorTypeHandle:{handle}>/<vendorId:\d+><slug:(?:-[^\/]*)?>/<siteHandle:{handle}>' => self::PLUGIN_HANDLE.'/vendors/edit-vendor',
 
             // Override order routes
-            // 'commerce/orders' => 'craft-commerce-multi-vendor/orders/order-index',
-            // 'commerce/orders/<orderId:\d+>' => 'craft-commerce-multi-vendor/orders/edit-order',
-            // 'commerce/orders/<orderStatusHandle:{handle}>' => 'craft-commerce-multi-vendor/orders/order-index',
+            // 'commerce/orders' => self::PLUGIN_HANDLE.'/orders/order-index',
+            // 'commerce/orders/<orderId:\d+>' => self::PLUGIN_HANDLE.'/orders/edit-order',
+            // 'commerce/orders/<orderStatusHandle:{handle}>' => self::PLUGIN_HANDLE.'/orders/order-index',
 
-            'commerce/settings/vendortypes' => 'craft-commerce-multi-vendor/vendor-types/vendor-type-index',
-            'commerce/settings/vendortypes/<vendorTypeId:\d+>' => 'craft-commerce-multi-vendor/vendor-types/edit-vendor-type',
-            'commerce/settings/vendortypes/new' => 'craft-commerce-multi-vendor/vendor-types/edit-vendor-type',
+            'commerce/settings/vendortypes' => self::PLUGIN_HANDLE.'/vendor-types/vendor-type-index',
+            'commerce/settings/vendortypes/<vendorTypeId:\d+>' => self::PLUGIN_HANDLE.'/vendor-types/edit-vendor-type',
+            'commerce/settings/vendortypes/new' => self::PLUGIN_HANDLE.'/vendor-types/edit-vendor-type',
 
         ], false);
     }
