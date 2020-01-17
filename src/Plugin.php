@@ -14,7 +14,6 @@ use batchnz\craftcommercemultivendor\services\Vendors as VendorsService;
 use batchnz\craftcommercemultivendor\services\Purchases as PurchasesService;
 use batchnz\craftcommercemultivendor\variables\CraftCommerceMultiVendorBehavior;
 use batchnz\craftcommercemultivendor\twigextensions\CraftCommerceMultiVendorTwigExtension;
-use batchnz\craftcommercemultivendor\models\Settings;
 use batchnz\craftcommercemultivendor\elements\Vendor;
 use batchnz\craftcommercemultivendor\elements\Order;
 use batchnz\craftcommercemultivendor\helpers\ArrayHelper;
@@ -128,32 +127,6 @@ class Plugin extends CraftPlugin
     // Protected Methods
     // =========================================================================
 
-    /**
-     * Creates and returns the model used to store the plugin’s settings.
-     *
-     * @return \craft\base\Model|null
-     */
-    protected function createSettingsModel()
-    {
-        return new Settings();
-    }
-
-    /**
-     * Returns the rendered settings HTML, which will be inserted into the content
-     * block on the settings page.
-     *
-     * @return string The rendered settings HTML
-     */
-    protected function settingsHtml(): string
-    {
-        return Craft::$app->view->renderTemplate(
-            self::PLUGIN_HANDLE.'/settings',
-            [
-                'settings' => $this->getSettings()
-            ]
-        );
-    }
-
     // Private Methods
     // =========================================================================
 
@@ -163,7 +136,7 @@ class Plugin extends CraftPlugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function(RegisterUrlRulesEvent $event) {
-                $event->rules[self::PLUGIN_HANDLE.''] = self::PLUGIN_HANDLE.'/settings';
+                $event->rules[self::PLUGIN_HANDLE.''] = self::PLUGIN_HANDLE.'/platform-settings';
             }
         );
     }

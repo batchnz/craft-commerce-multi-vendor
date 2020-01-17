@@ -10,22 +10,17 @@
 
     {{ forms.hidden({
         name: 'action',
-        value: 'plugins/save-plugin-settings'
+        value: 'craft-commerce-multi-vendor/platform-settings/save'
     }) }}
-
-    {{ forms.hidden({
-        name: 'pluginHandle',
-        value: 'craft-commerce-multi-vendor'
-    }) }}
-
 
     {{ forms.selectField({
         label: 'Select Commission Type',
         instructions: 'Choose whether the commission is charged at a percentage or a fixed amount.',
         id: 'commissionType',
         name: 'settings[commissionType]',
+        errors: errors['commissionType'] ?? null,
         options: {'percentage': 'Percentage', 'amount': 'Amount'},
-        value: settings['commissionType']})
+        value: settings['commissionType'] ?? ''})
     }}
 
     {{ forms.textField({
@@ -33,8 +28,9 @@
         instructions: 'Enter the rate at which the platform charges its commission at.',
         id: 'commission',
         unit: '',
+        errors: errors['commission'] ?? null,
         name: 'settings[commission]',
-        value: settings['commission']})
+        value: settings['commission'] ?? '0.00'})
     }}
 
     <input type="submit" class="submit btn" value="{{ 'Save'|t }}">

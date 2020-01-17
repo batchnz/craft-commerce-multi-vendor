@@ -14,6 +14,7 @@ use batchnz\craftcommercemultivendor\records\VendorTypeSite;
 use batchnz\craftcommercemultivendor\records\VendorTypeShippingCategory;
 use batchnz\craftcommercemultivendor\records\VendorTypeTaxCategory;
 use batchnz\craftcommercemultivendor\records\VendorAddress;
+use batchnz\craftcommercemultivendor\records\PlatformSettings;
 
 /**
  * Install migration.
@@ -162,6 +163,18 @@ class Install extends Migration
                     'uid' => $this->uid(),
                 ]);
             }
+
+            $vendorSettingsTableSchema = Craft::$app->db->schema->getTableSchema(PlatformSettings::tableName());
+            if( $vendorSettingsTableSchema === null ) {
+                $this->createTable(PlatformSettings::tableName(), [
+                    'id' => $this->primaryKey(),
+                    'commission' => $this->decimal(14,4)->notNull()->default('0.00')->unsigned(),
+                    'commissionType' => $this->enum('commissionType', ['percentage','amount'])->defaultValue('percentage')->notNull(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                ]);
+            }
         }
 
         return true;
@@ -221,6 +234,7 @@ class Install extends Migration
         $this->dropTableIfExists(Order::tableName());
         $this->dropTableIfExists(Vendor::tableName());
         $this->dropTableIfExists(VendorAddress::tableName());
+        $this->dropTableIfExists(PlatformSettings::tableName());
     }
 
     /**

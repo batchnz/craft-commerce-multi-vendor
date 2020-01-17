@@ -29,7 +29,7 @@ use craft\base\Model;
  * @package   CraftCommerceMultiVendor
  * @since     1.0.0
  */
-class Settings extends Model
+class PlatformSettings extends Model
 {
     // Public Properties
     // =========================================================================
