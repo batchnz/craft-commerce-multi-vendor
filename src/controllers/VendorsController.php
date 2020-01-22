@@ -12,6 +12,7 @@ use craft\errors\ElementNotFoundException;
 use craft\errors\MissingComponentException;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\UrlHelper;
 use craft\helpers\Json;
 use craft\helpers\Localization;
 use craft\models\FieldLayout;
@@ -97,39 +98,8 @@ class VendorsController extends Controller
 
         $this->_prepVariables($variables);
 
-        // Enable Live Preview?
-        if (!Craft::$app->getRequest()->isMobileBrowser(true) && Plugin::getInstance()->getVendorTypes()->isVendorTypeTemplateValid($variables['vendorType'], $variables['site']->id)) {
-            $this->getView()->registerJs('Craft.LivePreview.init(' . Json::encode([
-                    'fields' => '#title-field, #fields > div > div > .field',
-                    'extraFields' => '#details',
-                    'previewUrl' => $vendor->getUrl(),
-                    'previewAction' => Craft::$app->getSecurity()->hashData('commerce/vendors-preview/preview-vendor'),
-                    'previewParams' => [
-                        'typeId' => $variables['vendorType']->id,
-                        'vendorId' => $vendor->id,
-                        'siteId' => $vendor->siteId,
-                    ]
-                ]) . ');');
+        $variables['showPreviewBtn'] = false;
 
-            $variables['showPreviewBtn'] = true;
-
-            // Should we show the Share button too?
-            if ($vendor->id) {
-                // If the vendor is enabled, use its main URL as its share URL.
-                if ($vendor->getStatus() == Vendor::STATUS_LIVE) {
-                    $variables['shareUrl'] = $vendor->getUrl();
-                } else {
-                    $variables['shareUrl'] = UrlHelper::actionUrl('commerce/vendors-preview/share-vendor', [
-                        'vendorId' => $vendor->id,
-                        'siteId' => $vendor->siteId
-                    ]);
-                }
-            }
-        } else {
-            $variables['showPreviewBtn'] = false;
-        }
-
-        // $this->getView()->registerAssetBundle(EditVendorAsset::class);
         return $this->renderTemplate('craft-commerce-multi-vendor/vendors/_edit', $variables);
     }
 
@@ -344,16 +314,9 @@ class VendorsController extends Controller
             } else {
                 $variables['vendor'] = new Vendor();
                 $variables['vendor']->typeId = $variables['vendorType']->id;
-                // $taxCategories = $variables['vendorType']->getTaxCategories();
-                // $variables['vendor']->taxCategoryId = key($taxCategories);
-                // $shippingCategories = $variables['vendorType']->getShippingCategories();
-                // $variables['vendor']->shippingCategoryId = key($shippingCategories);
                 $variables['vendor']->typeId = $variables['vendorType']->id;
                 $variables['vendor']->enabled = true;
                 $variables['vendor']->siteId = $site->id;
-                // $variables['vendor']->promotable = true;
-                // $variables['vendor']->availableForPurchase = true;
-                // $variables['vendor']->freeShipping = false;
             }
         }
 

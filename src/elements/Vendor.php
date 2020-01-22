@@ -20,6 +20,7 @@ use craft\base\Element;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\UrlHelper;
+use craft\helpers\DateTimeHelper;
 
 /**
  * Vendor Element
@@ -67,6 +68,10 @@ use craft\helpers\UrlHelper;
  */
 class Vendor extends Element
 {
+    const STATUS_LIVE = 'live';
+    const STATUS_PENDING = 'pending';
+    const STATUS_EXPIRED = 'expired';
+
     // Public Properties
     // =========================================================================
 
@@ -141,6 +146,40 @@ class Vendor extends Element
     /**
      * @inheritdoc
      */
+    public static function hasStatuses(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getStatus()
+    {
+        $status = parent::getStatus();
+
+        if ($status == self::STATUS_ENABLED && $this->postDate) {
+            $currentTime = DateTimeHelper::currentTimeStamp();
+            $postDate = $this->postDate->getTimestamp();
+            $expiryDate = ($this->expiryDate ? $this->expiryDate->getTimestamp() : null);
+
+            if ($postDate <= $currentTime && ($expiryDate === null || $expiryDate > $currentTime)) {
+                return self::STATUS_LIVE;
+            }
+
+            if ($postDate > $currentTime) {
+                return self::STATUS_PENDING;
+            }
+
+            return self::STATUS_EXPIRED;
+        }
+
+        return $status;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function hasUris(): bool
     {
         return true;
@@ -200,8 +239,7 @@ class Vendor extends Element
                 'label' => 'All Vendors',
                 'criteria' => [
                     'typeId' => $vendorTypeIds
-                ],
-                // 'defaultSort' => ['postDate', 'desc']
+                ]
             ]
         ];
 
@@ -243,13 +281,6 @@ class Vendor extends Element
 
     // Public Methods
     // =========================================================================
-
-    public function extraFields()
-    {
-        $names = parent::extraFields();
-        $names[] = 'type';
-        return $names;
-    }
 
     /**
      * Returns whether the current user can edit the element.
@@ -362,16 +393,6 @@ class Vendor extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
-        // $taxCategoryIds = array_keys($this->getType()->getTaxCategories());
-        // if (!in_array($this->taxCategoryId, $taxCategoryIds, false)) {
-        //     $this->taxCategoryId = $taxCategoryIds[0];
-        // }
-
-        // $shippingCategoryIds = array_keys($this->getType()->getShippingCategories());
-        // if (!in_array($this->shippingCategoryId, $shippingCategoryIds, false)) {
-        //     $this->shippingCategoryId = $shippingCategoryIds[0];
-        // }
-
         // Make sure the field layout is set correctly
         $this->fieldLayoutId = $this->getType()->fieldLayoutId;
 
@@ -468,6 +489,44 @@ class Vendor extends Element
         return [
             'title' => Craft::t('commerce', 'Title'),
             'stripe_user_id' => Craft::t('commerce', 'Stripe User ID'),
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     * @throws InvalidConfigException if [[siteId]] is not set to a site ID that the entry's section is enabled for
+     */
+    public function getUriFormat()
+    {
+        $typeSiteSettings = $this->getType()->getSiteSettings();
+
+        if (!isset($typeSiteSettings[$this->siteId])) {
+            throw new InvalidConfigException('Entry’s section (' . $this->sectionId . ') is not enabled for site ' . $this->siteId);
+        }
+
+        return $typeSiteSettings[$this->siteId]->uriFormat;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function route()
+    {
+        // Make sure the section is set to have URLs for this site
+        $siteId = Craft::$app->getSites()->getCurrentSite()->id;
+        $typeSiteSettings = $this->getType()->getSiteSettings();
+
+        if (!isset($typeSiteSettings[$siteId]) || !$typeSiteSettings[$siteId]->hasUrls) {
+            return null;
+        }
+
+        return [
+            'templates/render', [
+                'template' => $typeSiteSettings[$siteId]->template,
+                'variables' => [
+                    'vendor' => $this,
+                ]
+            ]
         ];
     }
 }
