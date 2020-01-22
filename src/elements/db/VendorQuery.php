@@ -26,6 +26,20 @@ class VendorQuery extends ElementQuery
      */
     public $typeId;
 
+    /**
+     * @inheritdoc
+     */
+    public function __set($name, $value)
+    {
+        switch ($name) {
+            case 'type':
+                $this->type($value);
+                break;
+            default:
+                parent::__set($name, $value);
+        }
+    }
+
     public function stripe_access_token($value)
     {
         $this->stripe_access_token = $value;
