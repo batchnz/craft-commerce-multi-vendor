@@ -14,15 +14,10 @@ use batchnz\craftcommercemultivendor\Plugin;
 
 use Craft;
 use craft\base\Component;
+use craft\commerce\elements\Order;
 
 /**
  * Transactions Service
- *
- * All of your plugin’s business logic should go in services, including saving data,
- * retrieving data, etc. They provide APIs that your controllers, template variables,
- * and other plugins can interact with.
- *
- * https://craftcms.com/docs/plugins/services
  *
  * @author    Josh Smith
  * @package   CraftCommerceMultiVendor
@@ -34,22 +29,30 @@ class Transactions extends Component
     // =========================================================================
 
     /**
-     * This function can literally be anything you want, and you can have as many service
-     * functions as you want
-     *
-     * From any other plugin file, call it like this:
-     *
-     *     CraftCommerceMultiVendor::$plugin->purchases->exampleService()
-     *
-     * @return mixed
+     * Todo, when we can query multivendor orders this will be redundant
+     * as we'll loop through those directly and create a transaction for each.
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Order        $order          Order object
+     * @param  Transaction  $transaction    Transaction object
+     * @return array
      */
-    public function exampleService()
+    public function createTransactionsFromOrder(Order $order, Transaction $transaction)
     {
-        $result = 'something';
-        // Check our Plugin's settings for `someAttribute`
-        if (CraftCommerceMultiVendor::$plugin->getSettings()->someAttribute) {
+        $vendorsService = Plugin::$instance->getVendors();
+        $platformService = Plugin::$instance->getPlatform();
+
+        $vendorTotals = $vendorsService->getTotalsFromOrder($order);
+
+        $transactions = [];
+        foreach ($vendorTotals as $vendorId => $total) {
+            $transactions[] = $this->createTransaction($order);
         }
 
-        return $result;
+        return $transactions;
+    }
+
+    public function createTransaction(Order $order = null, Transaction $parentTransaction = null, $typeOverride = null): Transaction
+    {
+
     }
 }

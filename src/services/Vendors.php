@@ -15,6 +15,9 @@ use batchnz\craftcommercemultivendor\elements\Vendor;
 
 use Craft;
 use craft\base\Component;
+use craft\commerce\elements\Order;
+use craft\commerce\elements\Product;
+use craft\commerce\elements\Variant;
 
 /**
  * Vendors Service
@@ -43,14 +46,30 @@ class Vendors extends Component
     }
 
     /**
-     * Returns a Vendor by the passed user Id
+     * Returns a Vendor by the passed user ID
      * @author Josh Smith <josh@batch.nz>
      * @param  int    $userId
      * @return Vendor object
      */
-    public function getVendorByUserId(int $userId): Vendor
+    public function getVendorByUserId(int $userId): ?Vendor
     {
         return Vendor::find()->relatedTo([$userId])->one();
+    }
+
+    /**
+     * Returns a Vendor by the passed variant ID
+     * @author Josh Smith <josh@batch.nz>
+     * @param  int    $variantId
+     * @return Vendor
+     */
+    public function getVendorByVariantId(int $variantId): ?Vendor
+    {
+        $product = Product::find()->hasVariant(
+            Variant::find()->id($variantId)
+        )->one();
+        if( empty($product) ) return null;
+
+        return Vendor::find()->relatedTo($product)->one();
     }
 
     /**
@@ -78,4 +97,27 @@ class Vendors extends Component
         }
     }
 
+    /**
+     * Returns an array of vendor ids to order totals for each vendor
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Order  $order
+     * @return array
+     */
+    public function getTotalsFromOrder(Order $order): array
+    {
+        $vendorTotals = [];
+        foreach ($order->getLineItems() as $line) {
+
+            $vendor = $this->getVendorByVariantId($line->purchasableId);
+            if( empty($vendor) ) throw new \Exception('Failed to find vendor for purchasableId ' . $line->purchasableId);
+
+            if( empty($vendorTotals[$vendor->id]) ){
+                $vendorTotals[$vendor->id] = 0.00;
+            }
+
+            $vendorTotals[$vendor->id] += $line->getTotal();
+        }
+
+        return $vendorTotals;
+    }
 }

@@ -4,6 +4,8 @@ namespace batchnz\craftcommercemultivendor\plugin;
 
 use batchnz\craftcommercemultivendor\services\VendorTypes;
 use batchnz\craftcommercemultivendor\services\Vendors;
+use batchnz\craftcommercemultivendor\services\Payments;
+use batchnz\craftcommercemultivendor\services\Platform;
 
 /**
  * Trait Services
@@ -35,6 +37,26 @@ trait Services
         return $this->get('vendorTypes');
     }
 
+    /**
+     * Returns the payments service
+     * @author Josh Smith <josh@batch.nz>
+     * @return Payments The Payments service
+     */
+    public function getPayments(): Payments
+    {
+        return $this->get('payments');
+    }
+
+    /**
+     * Returns the platform service
+     * @author Josh Smith <josh@batch.nz>
+     * @return Platform The platform service
+     */
+    public function getPlatform(): Platform
+    {
+        return $this->get('platform');
+    }
+
     // Private Methods
     // =========================================================================
 
@@ -46,6 +68,8 @@ trait Services
         $this->setComponents([
             'vendorTypes' => VendorTypes::class,
             'vendors' => Vendors::class,
+            'payments' => Payments::class,
+            'platform' => Platform::class,
         ]);
     }
 }

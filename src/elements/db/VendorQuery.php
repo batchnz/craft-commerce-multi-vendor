@@ -1,10 +1,11 @@
 <?php
 namespace batchnz\craftcommercemultivendor\elements\db;
 
+use batchnz\craftcommercemultivendor\records\VendorType;
+
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
-use ns\prefix\elements\Product;
 
 class VendorQuery extends ElementQuery
 {
@@ -70,6 +71,23 @@ class VendorQuery extends ElementQuery
     public function typeId($value)
     {
         $this->typeId = $value;
+        return $this;
+    }
+
+    public function type($value)
+    {
+        if ($value instanceof VendorType) {
+            $this->typeId = $value->id;
+        } else if ($value !== null) {
+            $this->typeId = (new Query())
+                ->select(['id'])
+                ->from([VendorType::tableName()])
+                ->where(Db::parseParam('handle', $value))
+                ->column();
+        } else {
+            $this->typeId = null;
+        }
+
         return $this;
     }
 

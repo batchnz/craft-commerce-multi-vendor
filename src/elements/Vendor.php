@@ -162,6 +162,11 @@ class Vendor extends Element
         return true;
     }
 
+    public static function isSelectable(): bool
+    {
+        return true;
+    }
+
     /**
      * Creates an [[ElementQueryInterface]] instance for query purpose.
      * @return ElementQueryInterface The newly created [[ElementQueryInterface]] instance.

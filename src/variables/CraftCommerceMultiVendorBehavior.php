@@ -11,6 +11,8 @@
 namespace batchnz\craftcommercemultivendor\variables;
 
 use batchnz\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\elements\Vendor;
+use batchnz\craftcommercemultivendor\elements\db\VendorQuery;
 use yii\base\Behavior;
 
 use Craft;
@@ -40,5 +42,14 @@ class CraftCommerceMultiVendorBehavior extends Behavior
 
         // Point `craft.commerceMultiVendor` to the batchnz\craftcommercemultivendor\Plugin instance
         $this->commerceMultiVendor = Plugin::getInstance();
+    }
+
+    public function vendors($criteria = null): VendorQuery
+    {
+        $query = Vendor::find();
+        if ($criteria) {
+            Craft::configure($query, $criteria);
+        }
+        return $query;
     }
 }

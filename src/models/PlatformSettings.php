@@ -31,8 +31,13 @@ use craft\base\Model;
  */
 class PlatformSettings extends Model
 {
+    const COMMISSION_TYPE_AMOUNT = 'amount';
+    const COMMISSION_TYPE_PERCENTAGE = 'percentage';
+
     // Public Properties
     // =========================================================================
+
+    public $id;
 
     /**
      * The amount of commission charged
@@ -47,7 +52,11 @@ class PlatformSettings extends Model
      *
      * @var string
      */
-    public $commissionType = 'percentage';
+    public $commissionType = self::COMMISSION_TYPE_PERCENTAGE;
+
+    public $dateCreated;
+    public $dateUpdated;
+    public $uid;
 
     // Public Methods
     // =========================================================================
@@ -67,7 +76,7 @@ class PlatformSettings extends Model
         return [
             [['commissionType', 'commission'], 'required'],
             ['commissionType', 'string'],
-            ['commissionType', 'default', 'value' => 'percentage'],
+            ['commissionType', 'default', 'value' => self::COMMISSION_TYPE_PERCENTAGE],
             ['commission', 'double', 'min' => '0'],
             ['commission', 'default', 'value' => '0.00'],
         ];

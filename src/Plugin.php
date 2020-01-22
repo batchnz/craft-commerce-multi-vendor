@@ -20,6 +20,7 @@ use batchnz\craftcommercemultivendor\helpers\ArrayHelper;
 use batchnz\craftcommercemultivendor\behaviors\Template;
 use batchnz\craftcommercemultivendor\plugin\Services as CommerceMultiVendorServices;
 use batchnz\craftcommercemultivendor\services\VendorTypes;
+use batchnz\craftcommercemultivendor\fields\Vendors;
 
 use Craft;
 use craft\base\Plugin as CraftPlugin;
@@ -37,9 +38,13 @@ use craft\web\twig\variables\Cp;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\web\View;
 
-use yii\base\Event;
+use craft\commerce\services\Payments;
+use craft\commerce\events\ProcessPaymentEvent;
+use craft\commerce\stripe\events\BuildGatewayRequestEvent;
+use craft\commerce\stripe\base\Gateway as StripeGateway;
 
 use yii\BaseYii;
+use yii\base\Event;
 
 /**
  * Craft Commerce Multi Vendor Plugin
@@ -100,12 +105,13 @@ class Plugin extends CraftPlugin
         $this->_registerCpSectionRoute();
         $this->_setPluginComponents();
         $this->_registerElementTypes();
+        $this->_registerFieldTypes();
         $this->_registerVariables();
         $this->_registerCpNavItems();
         $this->_registerRoutes();
-        $this->_registerAfterInstall();
         $this->_registerAfterPluginsLoaded();
         $this->_registerProjectConfigEventListeners();
+        $this->_registerEventHandlers();
 
         Craft::info(
             Craft::t(
@@ -152,6 +158,13 @@ class Plugin extends CraftPlugin
                 $event->types[] = Order::class;
             }
         );
+    }
+
+    private function _registerFieldTypes()
+    {
+        Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function(RegisterComponentTypesEvent $event) {
+            $event->types[] = Vendors::class;
+        });
     }
 
     private function _registerVariables()
@@ -217,20 +230,6 @@ class Plugin extends CraftPlugin
         ], false);
     }
 
-    private function _registerAfterInstall()
-    {
-         // Do something after we're installed
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-                if ($event->plugin === $this) {
-                    // We were just installed
-                }
-            }
-        );
-    }
-
     private function _registerAfterPluginsLoaded()
     {
         Event::on(Plugins::class, Plugins::EVENT_AFTER_LOAD_PLUGINS, function(Event $event){
@@ -257,5 +256,22 @@ class Plugin extends CraftPlugin
             ->onRemove(VendorTypes::CONFIG_VENDORTYPES_KEY . '.{uid}', [$vendorTypeService, 'handleDeletedVendorType']);
         Event::on(Fields::class, Fields::EVENT_AFTER_DELETE_FIELD, [$vendorTypeService, 'pruneDeletedField']);
         Event::on(Sites::class, Sites::EVENT_AFTER_DELETE_SITE, [$vendorTypeService, 'pruneDeletedSite']);
+    }
+
+    private function _registerEventHandlers()
+    {
+        /**
+         * We use this event to add connect transfer group details to the Stripe request
+         */
+        Event::on(StripeGateway::class, StripeGateway::EVENT_BUILD_GATEWAY_REQUEST, function(BuildGatewayRequestEvent $e) {
+            $this->getPayments()->handleBuildGatewayRequestEvent($e);
+        });
+
+        /**
+         * We use ths event to route funds between the vendor accounts
+         */
+        Event::on(Payments::class, Payments::EVENT_AFTER_PROCESS_PAYMENT, function(ProcessPaymentEvent $e) {
+            $this->getPayments()->handleAfterProcessPaymentEvent($e);
+        });
     }
 }
