@@ -244,6 +244,13 @@ class Vendor extends Element
     // Public Methods
     // =========================================================================
 
+    public function extraFields()
+    {
+        $names = parent::extraFields();
+        $names[] = 'type';
+        return $names;
+    }
+
     /**
      * Returns whether the current user can edit the element.
      *
