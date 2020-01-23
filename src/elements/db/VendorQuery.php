@@ -22,6 +22,16 @@ class VendorQuery extends ElementQuery
     public $stripe_scope;
 
     /**
+     * @var mixed The Post Date that the resulting vendors must have.
+     */
+    public $expiryDate;
+
+    /**
+     * @var mixed The Post Date that the resulting vendors must have.
+     */
+    public $postDate;
+
+    /**
      * @var int|int[]|null The vendor type ID(s) that the resulting vendors must have.
      */
     public $typeId;
@@ -105,6 +115,36 @@ class VendorQuery extends ElementQuery
         return $this;
     }
 
+    /**
+     * @see EntryQuery.php
+     */
+    public function before($value)
+    {
+        if ($value instanceof DateTime) {
+            $value = $value->format(DateTime::W3C);
+        }
+
+        $this->postDate = ArrayHelper::toArray($this->postDate);
+        $this->postDate[] = '<' . $value;
+
+        return $this;
+    }
+
+    /**
+     * @see EntryQuery.php
+     */
+    public function after($value)
+    {
+        if ($value instanceof DateTime) {
+            $value = $value->format(DateTime::W3C);
+        }
+
+        $this->postDate = ArrayHelper::toArray($this->postDate);
+        $this->postDate[] = '>=' . $value;
+
+        return $this;
+    }
+
     protected function beforePrepare(): bool
     {
         // See if 'type' were set to invalid handles
@@ -124,30 +164,47 @@ class VendorQuery extends ElementQuery
             'commerce_multivendor_vendors.stripe_token_type',
             'commerce_multivendor_vendors.stripe_livemode',
             'commerce_multivendor_vendors.stripe_scope',
-            'commerce_multivendor_vendors.typeId'
+            'commerce_multivendor_vendors.typeId',
+            'commerce_multivendor_vendors.postDate',
+            'commerce_multivendor_vendors.expiryDate',
         ]);
 
         if( $this->stripe_access_token ){
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.stripe_access_token', $this->stripe_access_token));
         }
+
         if( $this->stripe_refresh_token ){
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.stripe_refresh_token', $this->stripe_refresh_token));
         }
+
         if( $this->stripe_publishable_key ){
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.stripe_publishable_key', $this->stripe_publishable_key));
         }
+
         if( $this->stripe_user_id ){
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.stripe_user_id', $this->stripe_user_id));
         }
+
         if( $this->stripe_token_type ){
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.stripe_token_type', $this->stripe_token_type));
         }
+
         if( $this->stripe_livemode ){
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.stripe_livemode', $this->stripe_livemode));
         }
+
         if( $this->stripe_scope ){
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.stripe_scope', $this->stripe_scope));
         }
+
+        if ($this->postDate) {
+            $this->subQuery->andWhere(Db::parseDateParam('commerce_products.postDate', $this->postDate));
+        }
+
+        if ($this->expiryDate) {
+            $this->subQuery->andWhere(Db::parseDateParam('commerce_products.expiryDate', $this->expiryDate));
+        }
+
         if( $this->typeId ){
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.typeId', $this->typeId));
         }

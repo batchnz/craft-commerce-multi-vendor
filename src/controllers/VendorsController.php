@@ -86,7 +86,7 @@ class VendorsController extends Controller
         if (!empty($vendor->id)) {
             $variables['title'] = $vendor->title;
         } else {
-            $variables['title'] = Craft::t('commerce', 'Create a new vendor');
+            $variables['title'] = Craft::t(Plugin::PLUGIN_HANDLE, 'Create a new vendor');
         }
 
         // Can't just use the entry's getCpEditUrl() because that might include the site handle when we don't want it
@@ -119,8 +119,6 @@ class VendorsController extends Controller
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
-
-        $request = Craft::$app->getRequest();
         $vendorId = $request->getBodyParam('vendorId');
         $siteId = $request->getBodyParam('siteId');
 
@@ -128,7 +126,7 @@ class VendorsController extends Controller
             $vendor = Plugin::getInstance()->getVendors()->getVendorById($vendorId, $siteId);
 
             if (!$vendor) {
-                throw new HttpException(404, Craft::t('commerce', 'No vendor with the ID “{id}”', ['id' => $vendorId]));
+                throw new HttpException(404, Craft::t(Plugin::PLUGIN_HANDLE, 'No vendor with the ID “{id}”', ['id' => $vendorId]));
             }
         } else {
             $vendor = new Vendor();
@@ -143,8 +141,6 @@ class VendorsController extends Controller
         if (($expiryDate = $request->getBodyParam('expiryDate')) !== null) {
             $vendor->expiryDate = DateTimeHelper::toDateTime($expiryDate) ?: null;
         }
-        // $vendor->taxCategoryId = $request->getBodyParam('taxCategoryId');
-        // $vendor->shippingCategoryId = $request->getBodyParam('shippingCategoryId');
         $vendor->slug = $request->getBodyParam('slug');
 
         $vendor->enabledForSite = (bool)$request->getBodyParam('enabledForSite', $vendor->enabledForSite);
@@ -167,7 +163,7 @@ class VendorsController extends Controller
                 ]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('commerce', 'Couldn’t save vendor.'));
+            Craft::$app->getSession()->setError(Craft::t(Plugin::PLUGIN_HANDLE, 'Couldn’t save vendor.'));
 
             // Send the category back to the template
             Craft::$app->getUrlManager()->setRouteParams([
@@ -188,9 +184,39 @@ class VendorsController extends Controller
             ]);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('commerce', 'Vendor saved.'));
+        Craft::$app->getSession()->setNotice(Craft::t(Plugin::PLUGIN_HANDLE, 'Vendor saved.'));
 
         return $this->redirectToPostedUrl($vendor);
+    }
+
+    /**
+     * Deletes a vendor.
+     *
+     * @throws Exception if you try to edit a non existing Id.
+     * @throws Throwable
+     */
+    public function actionDeleteVendor() {
+      $this->requirePostRequest();
+      $vendorId = Craft::$app->getRequest()->getRequiredParam('vendorId');
+      $vendor = Plugin::getInstance()->getVendors()->getVendorById($vendorId);
+      if (!$vendor) {
+          throw new Exception(Craft::t(Plugin::PLUGIN_HANDLE, 'No vendor exists with the ID “{id}”.',['id' => $vendorId]));
+      }
+      // $this->enforceVendorPermissions($vendor);
+      if (!Craft::$app->getElements()->deleteElement($vendor)) {
+          if (Craft::$app->getRequest()->getAcceptsJson()) {
+              return $this->asJson(['success' => false]);
+          }
+          Craft::$app->getSession()->setError(Craft::t(Plugin::PLUGIN_HANDLE, 'Couldn’t delete vendor.'));
+          Craft::$app->getUrlManager()->setRouteParams([
+              'vendor' => $vendor
+          ]);
+      }
+      if (Craft::$app->getRequest()->getAcceptsJson()) {
+          return $this->asJson(['success' => true]);
+      }
+      Craft::$app->getSession()->setNotice(Craft::t(Plugin::PLUGIN_HANDLE, 'Vendor deleted.'));
+      return $this->redirectToPostedUrl($vendor);
     }
 
     // Protected Methods
@@ -235,7 +261,7 @@ class VendorsController extends Controller
             }
 
             $variables['tabs'][] = [
-                'label' => Craft::t('commerce', $tab->name),
+                'label' => Craft::t(Plugin::PLUGIN_HANDLE, $tab->name),
                 'url' => '#tab' . ($index + 1),
                 'class' => $hasErrors ? 'error' : null
             ];
@@ -298,7 +324,7 @@ class VendorsController extends Controller
         }
 
         if (empty($variables['vendorType'])) {
-            throw new HttpException(400, craft::t('commerce', 'Wrong vendor type specified'));
+            throw new HttpException(400, craft::t(Plugin::PLUGIN_HANDLE, 'Wrong vendor type specified'));
         }
 
         // Get the vendor

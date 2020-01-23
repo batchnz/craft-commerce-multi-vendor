@@ -21,6 +21,9 @@ use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\UrlHelper;
 use craft\helpers\DateTimeHelper;
+use craft\validators\DateTimeValidator;
+
+use yii\base\InvalidConfigException;
 
 /**
  * Vendor Element
@@ -341,6 +344,29 @@ class Vendor extends Element
     /**
      * @inheritdoc
      */
+    public function rules()
+    {
+        $rules = parent::rules();
+        $rules[] = [['typeId'], 'number', 'integerOnly' => true];
+        $rules[] = [['postDate', 'expiryDate'], DateTimeValidator::class];
+
+        return $rules;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function datetimeAttributes(): array
+    {
+        $attributes = parent::datetimeAttributes();
+        $attributes[] = 'postDate';
+        $attributes[] = 'expiryDate';
+        return $attributes;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getFieldLayout()
     {
         return $this->getType()->getFieldLayout();
@@ -432,8 +458,6 @@ class Vendor extends Element
         $record->postDate = $this->postDate;
         $record->expiryDate = $this->expiryDate;
         $record->typeId = $this->typeId;
-        // $record->taxCategoryId = $this->taxCategoryId;
-        // $record->shippingCategoryId = $this->shippingCategoryId;
 
         $record->save(false);
 

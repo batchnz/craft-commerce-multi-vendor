@@ -13,6 +13,8 @@ namespace batchnz\craftcommercemultivendor\variables;
 use batchnz\craftcommercemultivendor\Plugin;
 use batchnz\craftcommercemultivendor\elements\Vendor;
 use batchnz\craftcommercemultivendor\elements\db\VendorQuery;
+use batchnz\craftcommercemultivendor\records\VendorType;
+use yii\db\ActiveQuery;
 use yii\base\Behavior;
 
 use Craft;
@@ -47,6 +49,15 @@ class CraftCommerceMultiVendorBehavior extends Behavior
     public function vendors($criteria = null): VendorQuery
     {
         $query = Vendor::find();
+        if ($criteria) {
+            Craft::configure($query, $criteria);
+        }
+        return $query;
+    }
+
+    public function vendorTypes($criteria = null): ActiveQuery
+    {
+        $query = VendorType::find();
         if ($criteria) {
             Craft::configure($query, $criteria);
         }

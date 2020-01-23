@@ -14,7 +14,6 @@
 {% set saveShortcutRedirect = continueEditingUrl %}
 
 {% import "_includes/forms" as forms %}
-{% import "basecommerce/products/_fields" as vendorFields %}
 
 
 {% block header %}
@@ -50,7 +49,7 @@
                                 <div class="status {{ status }}"></div>{{ site.name|t('site') }}
                             </a>
                         {% else %}
-                            {% set url = url("commerce/vendors/#{vendorTypeHandle}/#{craft.app.request.getSegment(4)}/#{site.handle}") %}
+                            {% set url = url("craft-commerce-multi-vendor/#{vendorTypeHandle}/#{craft.app.request.getSegment(4)}/#{site.handle}") %}
                             <a href="{{ url }}" data-site-id="{{ siteId }}">
                                 <div class="status {{ status }}"></div>{{ site.name|t('site') }}
                             </a>
@@ -92,7 +91,7 @@
                 <ul>
                     <li>
                         <a class="formsubmit error"
-                           data-action="commerce/vendors/delete-vendor"
+                           data-action="craft-commerce-multi-vendor/vendors/delete-vendor"
                            data-confirm="{{ 'Are you sure you want to delete this vendor?'|t('commerce') }}"
                            data-redirect="{{ 'commerce/vendors'|hash }}">
                             {{ 'Delete'|t('commerce') }}
@@ -150,10 +149,36 @@
 
 {% block details %}
 <div class="meta">
-    {{ vendorFields.generalMetaFields(vendor) }}
+    {%- import "_includes/forms" as forms -%}
+
+    {{ forms.textField({
+        label: "Slug"|t('commerce'),
+        site: vendor.site,
+        id: 'slug',
+        name: 'slug',
+        value: vendor.slug,
+        placeholder: 'Enter slug'|t('commerce'),
+        errors: vendor.getErrors('slug')|merge(vendor.getErrors('uri'))
+    }) }}
+
+    {{ forms.dateTimeField({
+        label: 'Post Date'|t('commerce'),
+        id: 'postDate',
+        name: 'postDate',
+        value: vendor.postDate,
+        errors: vendor.getErrors('postDate')
+    }) }}
+
+    {{ forms.dateTimeField({
+        label: 'Expiry Date'|t('commerce'),
+        id: 'expiryDate',
+        name: 'expiryDate',
+        value: vendor.expiryDate,
+        errors: vendor.getErrors('expiryDate')
+    }) }}
 
     {{ forms.lightswitchField({
-        label: "Enabled"|t('commerce'),
+        label: "Verified"|t('commerce'),
         id: 'enabled',
         name: 'enabled',
         on: vendor.enabled
@@ -161,18 +186,12 @@
 
     {% if craft.app.getIsMultiSite() %}
         {{ forms.lightswitchField({
-            label: "Enabled for site"|t('commerce'),
+            label: "Verified for site"|t('commerce'),
             id: 'enabledForSite',
             name: 'enabledForSite',
             on: vendor.enabledForSite
         }) }}
     {% endif %}
-</div>
-
-<hr>
-
-<div class="meta">
-    {# {{ vendorFields.behavioralMetaFields(vendor) }} #}
 </div>
 
 {% if vendor.id %}
