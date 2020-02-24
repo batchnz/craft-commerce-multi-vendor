@@ -2,7 +2,6 @@
 
 namespace batchnz\craftcommercemultivendor\events;
 
-namespace batchnz\craftcommercemultivendor\models\VendorType;
 use yii\base\Event;
 
 /**
