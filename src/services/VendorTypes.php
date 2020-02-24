@@ -52,8 +52,8 @@ class VendorTypes extends Component
      * Plugins can get notified before a vendor type is being saved.
      *
      * ```php
-     * use craft\commerce\events\VendorTypeEvent;
-     * use craft\commerce\services\VendorTypes;
+     * use craft\commercemultivendor\events\VendorTypeEvent;
+     * use craft\commercemultivendor\services\VendorTypes;
      * use yii\base\Event;
      *
      * Event::on(VendorTypes::class, VendorTypes::EVENT_BEFORE_SAVE_VENDORTYPE, function(VendorTypeEvent $e) {
@@ -69,8 +69,8 @@ class VendorTypes extends Component
      * Plugins can get notified after a vendor type has been saved.
      *
      * ```php
-     * use craft\commerce\events\VendorTypeEvent;
-     * use craft\commerce\services\VendorTypes;
+     * use craft\commercemultivendor\events\VendorTypeEvent;
+     * use craft\commercemultivendor\services\VendorTypes;
      * use yii\base\Event;
      *
      * Event::on(VendorTypes::class, VendorTypes::EVENT_AFTER_SAVE_VENDORTYPE, function(VendorTypeEvent $e) {
