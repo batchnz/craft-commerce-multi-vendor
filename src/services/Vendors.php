@@ -48,12 +48,13 @@ class Vendors extends Component
     /**
      * Returns a Vendor by the passed user ID
      * @author Josh Smith <josh@batch.nz>
-     * @param  int    $userId
-     * @return Vendor object
+     * @param  int          $userId
+     * @param  string|null  $status
+     * @return Vendor       object
      */
-    public function getVendorByUserId(int $userId): ?Vendor
+    public function getVendorByUserId(int $userId, $status = 'enabled'): ?Vendor
     {
-        return Vendor::find()->relatedTo([$userId])->one();
+        return Vendor::find()->relatedTo([$userId])->status($status)->one();
     }
 
     /**
