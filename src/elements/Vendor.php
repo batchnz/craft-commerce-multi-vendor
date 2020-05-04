@@ -23,6 +23,8 @@ use craft\helpers\UrlHelper;
 use craft\helpers\DateTimeHelper;
 use craft\validators\DateTimeValidator;
 
+use craft\commerce\elements\Product;
+
 use yii\base\InvalidConfigException;
 
 /**
@@ -284,6 +286,20 @@ class Vendor extends Element
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * Returns whether the passed product belongs to this vendor
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Product $product Product Element
+     * @return boolean
+     */
+    public function hasProduct(Product $product)
+    {
+        return Vendor::find()
+            ->id($this->id)
+            ->hasProduct(Product::find()->id($product->id))
+        ->exists();
+    }
 
     /**
      * Returns whether the current user can edit the element.

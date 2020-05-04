@@ -6,6 +6,7 @@ use batchnz\craftcommercemultivendor\services\VendorTypes;
 use batchnz\craftcommercemultivendor\services\Vendors;
 use batchnz\craftcommercemultivendor\services\Payments;
 use batchnz\craftcommercemultivendor\services\Platform;
+use batchnz\craftcommercemultivendor\services\Products;
 
 /**
  * Trait Services
@@ -57,6 +58,16 @@ trait Services
         return $this->get('platform');
     }
 
+    /**
+     * Returns the products service
+     * @author Josh Smith <josh@batch.nz>
+     * @return Products The products service
+     */
+    public function getProducts(): Products
+    {
+        return $this->get('products');
+    }
+
     // Private Methods
     // =========================================================================
 
@@ -70,6 +81,7 @@ trait Services
             'vendors' => Vendors::class,
             'payments' => Payments::class,
             'platform' => Platform::class,
+            'products' => Products::class,
         ]);
     }
 }

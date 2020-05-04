@@ -3,9 +3,15 @@ namespace batchnz\craftcommercemultivendor\elements\db;
 
 use batchnz\craftcommercemultivendor\records\VendorType;
 
+use Craft;
+use craft\db\Table;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+
+use craft\commerce\db\Table as CommerceTable;
+use craft\commerce\elements\Product;
+use craft\commerce\elements\db\ProductQuery;
 
 class VendorQuery extends ElementQuery
 {
@@ -20,6 +26,11 @@ class VendorQuery extends ElementQuery
     public $stripe_token_type;
     public $stripe_livemode;
     public $stripe_scope;
+
+    /**
+     * @var ProductQuery|array only return vendors that match the resulting product query.
+     */
+    public $hasProduct;
 
     /**
      * @var mixed The Post Date that the resulting vendors must have.
@@ -92,6 +103,12 @@ class VendorQuery extends ElementQuery
         return $this;
     }
 
+    public function hasProduct($value)
+    {
+        $this->hasProduct = $value;
+        return $this;
+    }
+
     public function typeId($value)
     {
         $this->typeId = $value;
@@ -152,7 +169,7 @@ class VendorQuery extends ElementQuery
             return false;
         }
 
-        // join in the products table
+        // join in the multi vendors table
         $this->joinElementTable('commerce_multivendor_vendors');
 
         // select the price column
@@ -209,6 +226,29 @@ class VendorQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.typeId', $this->typeId));
         }
 
+        $this->_applyHasProductParam();
+
         return parent::beforePrepare();
+    }
+
+    private function _applyHasProductParam()
+    {
+        if ($this->hasProduct) {
+            if ($this->hasProduct instanceof ProductQuery) {
+                $productQuery = $this->hasProduct;
+            } else {
+                $query = Product::find();
+                $productQuery = Craft::configure($query, $this->hasProduct);
+            }
+
+            $productQuery->limit = null;
+            $productQuery->select('relations.sourceId')->innerJoin(Table::RELATIONS, Table::RELATIONS.'.[[sourceId]] = '.CommerceTable::PRODUCTS.'.[[id]]');
+            $productIds = $productQuery->asArray()->column();
+
+            // Remove any blank product IDs (if any)
+            $productIds = array_filter($productIds);
+            $this->subQuery->innerJoin(Table::RELATIONS, Table::RELATIONS.'.[[targetId]] = {{%commerce_multivendor_vendors}}.[[id]]');
+            $this->subQuery->andWhere(['relations.sourceId' => array_values($productIds)]);
+        }
     }
 }

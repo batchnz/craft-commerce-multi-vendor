@@ -23,6 +23,7 @@ use batchnz\craftcommercemultivendor\services\VendorTypes;
 use batchnz\craftcommercemultivendor\fields\Vendors;
 
 use Craft;
+use craft\base\Element;
 use craft\base\Plugin as CraftPlugin;
 use craft\services\Plugins;
 use craft\events\PluginEvent;
@@ -30,6 +31,7 @@ use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Sites;
 use craft\web\twig\variables\CraftVariable;
+use craft\events\ModelEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterCpNavItemsEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -38,8 +40,9 @@ use craft\web\twig\variables\Cp;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\web\View;
 
-use craft\commerce\services\Payments;
+use craft\commerce\elements\Product;
 use craft\commerce\events\ProcessPaymentEvent;
+use craft\commerce\services\Payments;
 use craft\commerce\stripe\events\BuildGatewayRequestEvent;
 use craft\commerce\stripe\base\Gateway as StripeGateway;
 
@@ -260,6 +263,10 @@ class Plugin extends CraftPlugin
 
     private function _registerEventHandlers()
     {
+        Event::on(Product::class, Element::EVENT_BEFORE_SAVE, function(ModelEvent $e) {
+            $this->getProducts()->handleBeforeSaveEvent($e);
+        });
+
         /**
          * We use this event to add connect transfer group details to the Stripe request
          */
