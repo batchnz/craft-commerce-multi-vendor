@@ -235,8 +235,8 @@ class VendorsController extends Controller
     {
         $user = Craft::$app->getUser();
         $identity = $user->getIdentity();
-        $isNew = !$vendor->id;
-        $canAccess = $vendor->getIsEditable() && ($isNew || $vendor->hasUser($identity));
+        $isNew = $vendor->id;
+        $canAccess = $vendor->getIsEditable() && (!$isNew || $vendor->hasUser($identity));
 
         try {
             // Make sure the logged in user has access to this vendor
