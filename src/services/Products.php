@@ -39,8 +39,8 @@ class Products extends Component
         $product = $e->sender;
         $user = Craft::$app->getUser();
 
-        // Skip CP requests or if the user is an admin user
-        if( Craft::$app->getRequest()->getIsCpRequest() || $user->getIsAdmin() ) return;
+        // Skip if the user is an admin user or this is a new product
+        if( $user->getIsAdmin() || $e->isNew ) return;
 
         // Make sure this user has permission to edit this product type
         if( !$product->getIsEditable() ){
@@ -48,7 +48,7 @@ class Products extends Component
         }
 
         // Get the vendor associated with the current user
-        $vendor = Plugin::$instance->getVendors()->getVendorByUserId($user->id);
+        $vendor = Plugin::$instance->getVendors()->getVendorByUserId($user->id, null);
 
         if( empty($vendor) ){
             throw new NotFoundHttpException('We couldn\'t find a vendor associated with your account');

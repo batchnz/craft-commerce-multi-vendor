@@ -21,6 +21,7 @@ use DateTime;
 use Throwable;
 use yii\base\Exception;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
 use yii\web\Response;
 
@@ -50,6 +51,7 @@ class VendorsController extends Controller
      */
     public function actionVendorIndex(): Response
     {
+        $this->requirePermission('accessPlugin-commerce');
         return $this->renderTemplate('craft-commerce-multi-vendor/vendors/_index');
     }
 
@@ -68,6 +70,7 @@ class VendorsController extends Controller
      */
     public function actionEditVendor(string $vendorTypeHandle, int $vendorId = null, string $siteHandle = null, Vendor $vendor = null): Response
     {
+        $this->requirePermission('accessPlugin-commerce');
         $variables = compact('vendorTypeHandle', 'vendorId', 'vendor');
 
         if ($siteHandle !== null) {
@@ -195,14 +198,15 @@ class VendorsController extends Controller
      * @throws Exception if you try to edit a non existing Id.
      * @throws Throwable
      */
-    public function actionDeleteVendor() {
+    public function actionDeleteVendor()
+    {
       $this->requirePostRequest();
       $vendorId = Craft::$app->getRequest()->getRequiredParam('vendorId');
       $vendor = Plugin::getInstance()->getVendors()->getVendorById($vendorId);
       if (!$vendor) {
           throw new Exception(Craft::t(Plugin::PLUGIN_HANDLE, 'No vendor exists with the ID “{id}”.',['id' => $vendorId]));
       }
-      // $this->enforceVendorPermissions($vendor);
+      $this->enforceVendorPermissions($vendor);
       if (!Craft::$app->getElements()->deleteElement($vendor)) {
           if (Craft::$app->getRequest()->getAcceptsJson()) {
               return $this->asJson(['success' => false]);
@@ -229,7 +233,19 @@ class VendorsController extends Controller
      */
     protected function enforceVendorPermissions(Vendor $vendor)
     {
-        // $this->requirePermission('commerce-manageVendorType:' . $vendor->getType()->uid);
+        $user = Craft::$app->getUser();
+        $identity = $user->getIdentity();
+        $isNew = !$vendor->id;
+        $canAccess = $vendor->getIsEditable() && ($isNew || $vendor->hasUser($identity));
+
+        try {
+            // Make sure the logged in user has access to this vendor
+            if( !$user->getIsAdmin() && !$canAccess ) {
+                throw new ForbiddenHttpException();
+            }
+        } catch (ForbiddenHttpException $e) {
+            throw new ForbiddenHttpException(Craft::t(Plugin::PLUGIN_HANDLE, 'You don\'t have access to manage this vendor.'));
+        }
     }
 
     // Private Methods

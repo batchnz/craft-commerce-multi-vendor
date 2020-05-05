@@ -30,11 +30,13 @@ use craft\events\PluginEvent;
 use craft\services\Elements;
 use craft\services\Fields;
 use craft\services\Sites;
+use craft\services\UserPermissions;
 use craft\web\twig\variables\CraftVariable;
 use craft\events\ModelEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterCpNavItemsEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\events\RegisterUserPermissionsEvent;
 use craft\web\UrlManager;
 use craft\web\twig\variables\Cp;
 use craft\events\RegisterTemplateRootsEvent;
@@ -115,6 +117,7 @@ class Plugin extends CraftPlugin
         $this->_registerAfterPluginsLoaded();
         $this->_registerProjectConfigEventListeners();
         $this->_registerEventHandlers();
+        $this->_registerPermissions();
 
         Craft::info(
             Craft::t(
@@ -124,6 +127,19 @@ class Plugin extends CraftPlugin
             ),
             __METHOD__
         );
+    }
+
+    /**
+     * @param $message
+     * @param array $params
+     * @param null $language
+     * @return string
+     * @see Craft::t()
+     * @since 2.2.0
+     */
+    public static function t($message, $params = [], $language = null)
+    {
+        return Craft::t(self::PLUGIN_HANDLE, $message, $params, $language);
     }
 
     public function getCpNavItem()
@@ -279,6 +295,21 @@ class Plugin extends CraftPlugin
          */
         Event::on(Payments::class, Payments::EVENT_AFTER_PROCESS_PAYMENT, function(ProcessPaymentEvent $e) {
             $this->getPayments()->handleAfterProcessPaymentEvent($e);
+        });
+    }
+
+    private function _registerPermissions()
+    {
+        Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
+            $vendorTypes = Plugin::getInstance()->getVendorTypes()->getAllVendorTypes();
+
+            $vendorTypePermissions = [];
+            foreach ($vendorTypes as $vendorType) {
+                $suffix = ':' . $vendorType->uid;
+                $vendorTypePermissions['commerce-manageVendorType' . $suffix] = ['label' => self::t('Manage “{type}” vendors', ['type' => $vendorType->name])];
+            }
+
+            $event->permissions[self::t('Craft Commerce')]['commerce-manageVendors'] = ['label' => self::t('Manage vendors'), 'nested' => $vendorTypePermissions];
         });
     }
 }

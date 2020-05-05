@@ -17,6 +17,7 @@ use batchnz\craftcommercemultivendor\records\Vendor as VendorRecord;
 
 use Craft;
 use craft\base\Element;
+use craft\elements\User;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\UrlHelper;
@@ -297,18 +298,38 @@ class Vendor extends Element
     {
         return Vendor::find()
             ->id($this->id)
-            ->hasProduct(Product::find()->id($product->id))
+            ->status($this->status)
+            ->hasProduct($product)
         ->exists();
     }
 
     /**
-     * Returns whether the current user can edit the element.
-     *
-     * @return bool
+     * Returns whether the passed user belongs to this vendor
+     * @author Josh Smith <josh@batch.nz>
+     * @param  User $user User Element
+     * @return boolean
+     */
+    public function hasUser(User $user)
+    {
+        return Vendor::find()
+            ->id($this->id)
+            ->status($this->status)
+            ->hasUser($user)
+        ->exists();
+    }
+
+    /**
+     * @inheritdoc
      */
     public function getIsEditable(): bool
     {
-        return true;
+        if ($this->getType()) {
+            $uid = $this->getType()->uid;
+
+            return Craft::$app->getUser()->checkPermission('commerce-manageVendorType:' . $uid);
+        }
+
+        return false;
     }
 
     /**

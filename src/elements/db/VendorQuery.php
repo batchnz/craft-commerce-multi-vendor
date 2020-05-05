@@ -6,6 +6,8 @@ use batchnz\craftcommercemultivendor\records\VendorType;
 use Craft;
 use craft\db\Table;
 use craft\db\Query;
+use craft\elements\User;
+use craft\elements\db\UserQuery;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 
@@ -31,6 +33,11 @@ class VendorQuery extends ElementQuery
      * @var ProductQuery|array only return vendors that match the resulting product query.
      */
     public $hasProduct;
+
+    /**
+     * @var UserQuery|array only return vendors that match the resulting user query.
+     */
+    public $hasUser;
 
     /**
      * @var mixed The Post Date that the resulting vendors must have.
@@ -106,6 +113,12 @@ class VendorQuery extends ElementQuery
     public function hasProduct($value)
     {
         $this->hasProduct = $value;
+        return $this;
+    }
+
+    public function hasUser($value)
+    {
+        $this->hasUser = $value;
         return $this;
     }
 
@@ -227,6 +240,7 @@ class VendorQuery extends ElementQuery
         }
 
         $this->_applyHasProductParam();
+        $this->_applyHasUserParam();
 
         return parent::beforePrepare();
     }
@@ -237,8 +251,9 @@ class VendorQuery extends ElementQuery
             if ($this->hasProduct instanceof ProductQuery) {
                 $productQuery = $this->hasProduct;
             } else {
-                $query = Product::find();
-                $productQuery = Craft::configure($query, $this->hasProduct);
+                $productQuery = Product::find()
+                    ->id($this->hasProduct->id)
+                    ->status($this->hasProduct->status);
             }
 
             $productQuery->limit = null;
@@ -249,6 +264,28 @@ class VendorQuery extends ElementQuery
             $productIds = array_filter($productIds);
             $this->subQuery->innerJoin(Table::RELATIONS, Table::RELATIONS.'.[[targetId]] = {{%commerce_multivendor_vendors}}.[[id]]');
             $this->subQuery->andWhere(['relations.sourceId' => array_values($productIds)]);
+        }
+    }
+
+    private function _applyHasUserParam()
+    {
+        if ($this->hasUser) {
+            if ($this->hasUser instanceof UserQuery) {
+                $userQuery = $this->hasUser;
+            } else {
+                $userQuery = User::find()
+                    ->id($this->hasUser->id)
+                    ->status($this->hasUser->status);
+            }
+
+            $userQuery->limit = null;
+            $userQuery->select('relations.targetId')->innerJoin(Table::RELATIONS, Table::RELATIONS.'.[[targetId]] = '.Table::USERS.'.[[id]]');
+            $userIds = $userQuery->asArray()->column();
+
+            // Remove any blank product IDs (if any)
+            $userIds = array_filter($userIds);
+            $this->subQuery->innerJoin(Table::RELATIONS, Table::RELATIONS.'.[[sourceId]] = {{%commerce_multivendor_vendors}}.[[id]]');
+            $this->subQuery->andWhere(['IN', 'relations.targetId', array_values($userIds)]);
         }
     }
 }
