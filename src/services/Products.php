@@ -40,7 +40,7 @@ class Products extends Component
         $user = Craft::$app->getUser();
 
         // Skip if the user is an admin user or this is a new product
-        if( $user->getIsAdmin() || $e->isNew ) return;
+        if( $user->getIsAdmin() ) return;
 
         // Make sure this user has permission to edit this product type
         if( !$product->getIsEditable() ){
@@ -55,7 +55,11 @@ class Products extends Component
         }
 
         // Ensure this product belongs to the vendor associated with the logged in user
-        if( !$vendor->hasProduct($product) ){
+        $canAccess = $e->isNew ?
+            in_array($vendor->id, $product->brewery->id) :
+            $vendor->hasProduct($product);
+
+        if( !$canAccess ){
             throw new ForbiddenHttpException('You don\'t have permission to manage this product');
         }
     }
