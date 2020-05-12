@@ -12,10 +12,13 @@ namespace batchnz\craftcommercemultivendor\services;
 
 use batchnz\craftcommercemultivendor\Plugin;
 use batchnz\craftcommercemultivendor\elements\Vendor;
+use batchnz\craftcommercemultivendor\records\Vendor as VendorRecord;
 
 use Craft;
 use craft\base\Component;
-use craft\commerce\elements\Order;
+use craft\db\Table;
+use craft\commerce\db\Table as CommerceTable;
+use craft\commerce\elements\Order as CommerceOrder;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 
@@ -74,6 +77,24 @@ class Vendors extends Component
     }
 
     /**
+     * Returns an array of vendors for the passed commerce order Id
+     * @author Josh Smith <josh@batch.nz>
+     * @param  int    $orderId
+     * @return array
+     */
+    public function getVendorsByCommerceOrderId(int $orderId)
+    {
+        return Vendor::find()
+            ->innerJoin(Table::RELATIONS, Table::RELATIONS.'.[[targetId]] = '.VendorRecord::tableName().'.[[id]]')
+            ->innerJoin(CommerceTable::PRODUCTS, CommerceTable::PRODUCTS.'.[[id]] = '.Table::RELATIONS.'.[[sourceId]]')
+            ->innerJoin(CommerceTable::VARIANTS, CommerceTable::VARIANTS.'.[[productId]] = '.CommerceTable::PRODUCTS.'.[[id]]')
+            ->innerJoin(CommerceTable::LINEITEMS, CommerceTable::LINEITEMS.'.[[purchasableId]] = '.CommerceTable::VARIANTS.'.[[id]]')
+            ->where(['commerce_lineitems.orderId' => $orderId])
+            ->distinct()
+        ->all();
+    }
+
+    /**
      * Handle a Site being saved.
      *
      * @param SiteEvent $event
@@ -96,29 +117,5 @@ class Vendors extends Component
                 ]
             ]));
         }
-    }
-
-    /**
-     * Returns an array of vendor ids to order totals for each vendor
-     * @author Josh Smith <josh@batch.nz>
-     * @param  Order  $order
-     * @return array
-     */
-    public function getTotalsFromOrder(Order $order): array
-    {
-        $vendorTotals = [];
-        foreach ($order->getLineItems() as $line) {
-
-            $vendor = $this->getVendorByVariantId($line->purchasableId);
-            if( empty($vendor) ) throw new \Exception('Failed to find vendor for purchasableId ' . $line->purchasableId);
-
-            if( empty($vendorTotals[$vendor->id]) ){
-                $vendorTotals[$vendor->id] = 0.00;
-            }
-
-            $vendorTotals[$vendor->id] += $line->getTotal();
-        }
-
-        return $vendorTotals;
     }
 }

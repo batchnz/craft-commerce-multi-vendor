@@ -11,6 +11,7 @@
 namespace batchnz\craftcommercemultivendor\services;
 
 use batchnz\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\elements\Order;
 use batchnz\craftcommercemultivendor\elements\Vendor;
 
 use Craft;
@@ -56,49 +57,31 @@ class Payments extends Component
         // 3. Minus the commission rate from each vendors subtotal
         // 4. Transfer the vendor amounts into their accounts
 
-        $vendorsService = Plugin::$instance->getVendors();
-        $platformService = Plugin::$instance->getPlatform();
+        // $platformService = Plugin::$instance->getPlatform();
+        // $ordersService = Plugin::$instance->getOrders();
+        // $vendorsService = Plugin::$instance->getVendors();
 
-        $order = $e->order;
-        $response = $e->response;
-        $transaction = $e->transaction;
+        // $order = $e->order;
+        // $response = $e->response;
+        // $transaction = $e->transaction;
 
-        // Fetch the summarised order totals for each vendor
-        $vendorTotals = $vendorsService->getTotalsFromOrder($order);
+        // Create order split for each vendor
+        // $ordersService->createOrderSplit($order);
 
-        // Loop through each of the vendor totals and process transfers
-        foreach ($vendorTotals as $vendorId => $total) {
 
-            $vendor = $vendorsService->getVendorById($vendorId);
-            $platformCommission = $platformService->calcCommission($total);
-            $vendorAmount = $total - $platformCommission;
+        // // Fetch the summarised order totals for each vendor
+        // $vendorTotals = $vendorsService->getTotalsFromOrder($order);
 
-// We will need to create transaction records here...
+        // // Loop through each of the vendor totals and process transfers
+        // foreach ($vendorTotals as $vendorId => $total) {
 
-            //
-            // Perform the transfer, if something goes wrong here, we need to send an email to NZBEX so they can manually resolve...
-            //
-            try {
-                $this->processTransferToVendor($vendor, $vendorAmount, $response->getTransactionReference());
-            } catch(\Exception $e) {
-                echo '<pre> $e->getMessage(): '; print_r($e->getMessage()); echo '</pre>'; die();
-                // Handle transfer failure
-            }
-        }
-    }
+        //     $vendor = $vendorsService->getVendorById($vendorId);
+        //     $subOrder = $ordersService->createVendorOrder($vendor, $order);
+        //     // $platformCommission = $platformService->calcCommission($total);
+        //     // $vendorAmount = $total - $platformCommission;
 
-    public function processTransferToVendor(Vendor $vendor, float $amount, string $sourceTransaction = '')
-    {
-        $data = [
-            'amount' => (int) $amount * 100,
-            'currency' => 'nzd',
-            'destination' => $vendor->stripe_user_id,
-        ];
+        //     // Create order split records
 
-        if( !empty($sourceTransaction) ){
-            $data['source_transaction'] = $sourceTransaction;
-        }
-
-        return \Stripe\Transfer::create($data);
+        // }
     }
 }

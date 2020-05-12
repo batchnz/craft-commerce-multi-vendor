@@ -64,6 +64,8 @@ class Install extends Migration
                 'id' => $this->primaryKey(),
                 'commerceOrderId' => $this->integer(),
                 'vendorId' => $this->integer(),
+                'orderStatusId' => $this->integer(),
+                'isCompleted' => $this->boolean(),
                 'total' => $this->decimal(14,4),
                 'totalPaid' => $this->decimal(14,4),
                 'paidStatus' => $this->enum('type', ['paid','partial','unpaid','overPaid'])->notNull(),
@@ -188,6 +190,7 @@ class Install extends Migration
         $this->createIndex(null, Transaction::tableName(), 'commerceTransactionId', false);
         $this->createIndex(null, Transaction::tableName(), 'vendorId', false);
         $this->createIndex(null, Order::tableName(), 'commerceOrderId', false);
+        $this->createIndex(null, Order::tableName(), 'orderStatusId', false);
         $this->createIndex(null, Order::tableName(), 'vendorId', false);
     }
 

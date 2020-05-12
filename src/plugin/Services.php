@@ -2,11 +2,13 @@
 
 namespace batchnz\craftcommercemultivendor\plugin;
 
-use batchnz\craftcommercemultivendor\services\VendorTypes;
-use batchnz\craftcommercemultivendor\services\Vendors;
+use batchnz\craftcommercemultivendor\services\LineItems;
+use batchnz\craftcommercemultivendor\services\Orders;
 use batchnz\craftcommercemultivendor\services\Payments;
 use batchnz\craftcommercemultivendor\services\Platform;
 use batchnz\craftcommercemultivendor\services\Products;
+use batchnz\craftcommercemultivendor\services\Vendors;
+use batchnz\craftcommercemultivendor\services\VendorTypes;
 
 /**
  * Trait Services
@@ -36,6 +38,26 @@ trait Services
     public function getVendorTypes(): VendorTypes
     {
         return $this->get('vendorTypes');
+    }
+
+    /**
+     * Returns the orders service
+     * @author Josh Smith <josh@batch.nz>
+     * @return Orders The Orders service
+     */
+    public function getOrders(): Orders
+    {
+        return $this->get('orders');
+    }
+
+    /**
+     * Returns the line items service
+     * @author Josh Smith <josh@batch.nz>
+     * @return LineItems The line items service
+     */
+    public function getLineItems(): LineItems
+    {
+        return $this->get('lineItems');
     }
 
     /**
@@ -77,11 +99,13 @@ trait Services
     private function _setPluginComponents()
     {
         $this->setComponents([
-            'vendorTypes' => VendorTypes::class,
-            'vendors' => Vendors::class,
+            'lineItems' => LineItems::class,
+            'orders' => Orders::class,
             'payments' => Payments::class,
             'platform' => Platform::class,
             'products' => Products::class,
+            'vendors' => Vendors::class,
+            'vendorTypes' => VendorTypes::class,
         ]);
     }
 }

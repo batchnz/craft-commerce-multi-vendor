@@ -340,6 +340,16 @@ class Vendor extends Element
         return $this->title;
     }
 
+    /**
+     * Returns vendor order records that belong to this vendor
+     * @author Josh Smith <josh@batch.nz>
+     * @return array
+     */
+    public function getOrders()
+    {
+        return Plugin::getInstance()->getOrders()->getOrdersByVendor($this);
+    }
+
      /**
      * Returns the vendor's vendor type.
      *
