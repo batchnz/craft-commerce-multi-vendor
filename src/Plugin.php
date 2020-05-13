@@ -46,8 +46,6 @@ use craft\commerce\Plugin as CommercePlugin;
 use craft\commerce\elements\Product;
 use craft\commerce\events\ProcessPaymentEvent;
 use craft\commerce\services\Payments;
-use craft\commerce\stripe\events\BuildGatewayRequestEvent;
-use craft\commerce\stripe\base\Gateway as StripeGateway;
 
 use yii\BaseYii;
 use yii\base\Event;
@@ -285,13 +283,6 @@ class Plugin extends CraftPlugin
     {
         Event::on(Product::class, Element::EVENT_BEFORE_SAVE, function(ModelEvent $e) {
             $this->getProducts()->handleBeforeSaveEvent($e);
-        });
-
-        /**
-         * We use this event to add connect transfer group details to the Stripe request
-         */
-        Event::on(StripeGateway::class, StripeGateway::EVENT_BUILD_GATEWAY_REQUEST, function(BuildGatewayRequestEvent $e) {
-            $this->getPayments()->handleBuildGatewayRequestEvent($e);
         });
 
         /**
