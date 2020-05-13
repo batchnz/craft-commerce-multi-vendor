@@ -16,6 +16,7 @@ use batchnz\craftcommercemultivendor\records\Order as OrderRecord;
 
 use Craft;
 use craft\base\Element;
+use craft\elements\db\ElementQueryInterface;
 use craft\commerce\elements\Order as CommerceOrder;
 
 /**

@@ -30,20 +30,6 @@ use craft\commerce\stripe\events\BuildGatewayRequestEvent;
 class Payments extends Component
 {
     /**
-     * Modifies the Stripe Gateway request by adding a transfer group parameter
-     * which we can use later to route funds between connected vendor accounts.
-     * @author Josh Smith <josh@batch.nz>
-     * @param  BuildGatewayRequestEvent $e Event object
-     * @return void
-     */
-    public function handleBuildGatewayRequestEvent(BuildGatewayRequestEvent $e)
-    {
-        if ($e->transaction->type === 'purchase') {
-            // $e->request['transfer_group'] = "ORDER{$e->transaction->orderId}";
-        }
-    }
-
-    /**
      * Handles the after process payment event.
      * We use this event to process transfers between the connected vendors accounts.
      * @author Josh Smith <josh@batch.nz>
@@ -52,36 +38,7 @@ class Payments extends Component
      */
     public function handleAfterProcessPaymentEvent(ProcessPaymentEvent $e)
     {
-        // 1. Load commission rate
-        // 2. Loop through all order lines and group into vendors
-        // 3. Minus the commission rate from each vendors subtotal
-        // 4. Transfer the vendor amounts into their accounts
-
-        // $platformService = Plugin::$instance->getPlatform();
-        // $ordersService = Plugin::$instance->getOrders();
-        // $vendorsService = Plugin::$instance->getVendors();
-
-        // $order = $e->order;
-        // $response = $e->response;
-        // $transaction = $e->transaction;
-
         // Create order split for each vendor
-        // $ordersService->createOrderSplit($order);
-
-
-        // // Fetch the summarised order totals for each vendor
-        // $vendorTotals = $vendorsService->getTotalsFromOrder($order);
-
-        // // Loop through each of the vendor totals and process transfers
-        // foreach ($vendorTotals as $vendorId => $total) {
-
-        //     $vendor = $vendorsService->getVendorById($vendorId);
-        //     $subOrder = $ordersService->createVendorOrder($vendor, $order);
-        //     // $platformCommission = $platformService->calcCommission($total);
-        //     // $vendorAmount = $total - $platformCommission;
-
-        //     // Create order split records
-
-        // }
+        Plugin::$instance->getOrders()->createSubOrders($order);
     }
 }

@@ -42,6 +42,7 @@ use craft\web\twig\variables\Cp;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\web\View;
 
+use craft\commerce\Plugin as CommercePlugin;
 use craft\commerce\elements\Product;
 use craft\commerce\events\ProcessPaymentEvent;
 use craft\commerce\services\Payments;
@@ -121,14 +122,6 @@ class Plugin extends CraftPlugin
         $this->_registerProjectConfigEventListeners();
         $this->_registerEventHandlers();
         $this->_registerPermissions();
-
-// $request = Craft::$app->getRequest();
-
-// if( $request->getParam('orderSplit') === '1' ){
-//     $order = CommerceOrder::find()->id('45450')->one();
-//     $splitOrders = $this->getOrders()->createOrderSplit($order);
-//     echo '<pre> $splitOrders: '; print_r($splitOrders); echo '</pre>'; die();
-// }
 
         Craft::info(
             Craft::t(

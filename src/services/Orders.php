@@ -11,7 +11,8 @@
 namespace batchnz\craftcommercemultivendor\services;
 
 use batchnz\craftcommercemultivendor\Plugin as CommerceMultiVendor;
-use batchnz\craftcommercemultivendor\elements\Order;
+use batchnz\craftcommercemultivendor\elements\Order as SubOrder;
+use batchnz\craftcommercemultivendor\elements\Vendor;
 
 use Craft;
 use craft\base\Component;
@@ -43,7 +44,7 @@ class Orders extends Component
      * @param  CommerceOrder  $order    Commerce customer order
      * @return array                    An array of vendor orders
      */
-    public function createOrderSplit(CommerceOrder $order)
+    public function createSubOrders(CommerceOrder $order)
     {
         $orderSplits = [];
 
@@ -56,20 +57,43 @@ class Orders extends Component
 
         // Loop each vendor and create an order split for each one
         foreach ($vendors as $vendor) {
-            $orderRef = new Order([
-                'commerceOrderId' => $order->id,
-                'vendorId' => $vendor->id,
-                'orderStatusId' => $defaultOrderStatus ? $defaultOrderStatus->id : null,
-                'isCompleted' => 0,
-            ]);
-
-            // Create the order ref
-            Craft::$app->getElements()->saveElement($orderRef);
-
-            $orderSplits[] = $orderRef;
+            $orderSplits[] = $this->createSubOrder($order, $vendor, $defaultOrderStatus);
         }
 
         return $orderSplits;
+    }
+
+    /**
+     * Creates a sub order for the passed vendor
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Order        $order
+     * @param  Vendor       $vendor
+     * @param  OrderStatus  $defaultOrderStatus
+     * @return Order
+     */
+    public function createSubOrder($order, $vendor, $defaultOrderStatus)
+    {
+        $subOrder = $this->buildSubOrder($order, $vendor, $defaultOrderStatus);
+        Craft::$app->getElements()->saveElement($subOrder);
+        return $subOrder;
+    }
+
+    /**
+     * Builds the suborder model
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Order        $order
+     * @param  Vendor       $vendor
+     * @param  OrderStatus  $defaultOrderStatus
+     * @return Order
+     */
+    protected function buildSubOrder($order, $vendor, $defaultOrderStatus)
+    {
+        return new SubOrder([
+            'commerceOrderId' => $order->id,
+            'vendorId' => $vendor->id,
+            'orderStatusId' => $defaultOrderStatus ? $defaultOrderStatus->id : null,
+            'isCompleted' => 0,
+        ]);
     }
 
     /**
@@ -83,8 +107,8 @@ class Orders extends Component
             return null;
         }
 
-        $query = Order::find();
-        if ($vendor instanceof Customer) {
+        $query = SubOrder::find();
+        if ($vendor instanceof Vendor) {
             $query->vendor($vendor);
         } else {
             $query->vendorId($vendor);
