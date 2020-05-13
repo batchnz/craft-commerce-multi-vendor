@@ -39,6 +39,6 @@ class Payments extends Component
     public function handleAfterProcessPaymentEvent(ProcessPaymentEvent $e)
     {
         // Create order split for each vendor
-        Plugin::$instance->getOrders()->createSubOrders($order);
+        Plugin::$instance->getOrders()->createSubOrders($e->order);
     }
 }
