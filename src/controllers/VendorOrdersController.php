@@ -33,6 +33,7 @@ class VendorOrdersController extends BaseCpController
     {
         $this->requirePostRequest();
 
+        $request = Craft::$app->getRequest();
         $order = $this->_setOrderFromPost();
 
         $order->setScenario(Element::SCENARIO_LIVE);
@@ -43,6 +44,14 @@ class VendorOrdersController extends BaseCpController
                 'order' => $order
             ]);
             return null;
+        }
+
+        if( $request->getIsAjax() ){
+            return $this->asJson([
+                'result' => 'success',
+                'message' => 'Order successfully saved',
+                'order' => $order
+            ]);
         }
 
         return $this->redirectToPostedUrl($order);
