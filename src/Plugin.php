@@ -15,10 +15,12 @@ use batchnz\craftcommercemultivendor\services\Purchases as PurchasesService;
 use batchnz\craftcommercemultivendor\variables\CraftCommerceMultiVendorBehavior;
 use batchnz\craftcommercemultivendor\twigextensions\CraftCommerceMultiVendorTwigExtension;
 use batchnz\craftcommercemultivendor\elements\Vendor;
-use batchnz\craftcommercemultivendor\elements\Order;
+use batchnz\craftcommercemultivendor\elements\Order as SubOrder;
 use batchnz\craftcommercemultivendor\helpers\ArrayHelper;
+use batchnz\craftcommercemultivendor\behaviors\Order as OrderBehavior;
 use batchnz\craftcommercemultivendor\behaviors\Template;
 use batchnz\craftcommercemultivendor\plugin\Services as CommerceMultiVendorServices;
+use batchnz\craftcommercemultivendor\services\Orders as OrdersService;
 use batchnz\craftcommercemultivendor\services\VendorTypes;
 use batchnz\craftcommercemultivendor\fields\Vendors;
 
@@ -32,6 +34,7 @@ use craft\services\Fields;
 use craft\services\Sites;
 use craft\services\UserPermissions;
 use craft\web\twig\variables\CraftVariable;
+use craft\events\DefineBehaviorsEvent;
 use craft\events\ModelEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterCpNavItemsEvent;
@@ -43,6 +46,7 @@ use craft\events\RegisterTemplateRootsEvent;
 use craft\web\View;
 
 use craft\commerce\Plugin as CommercePlugin;
+use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 use craft\commerce\events\ProcessPaymentEvent;
 use craft\commerce\services\Payments;
@@ -51,7 +55,6 @@ use yii\BaseYii;
 use yii\base\Event;
 
 
-use craft\commerce\elements\Order as CommerceOrder;
 
 /**
  * Craft Commerce Multi Vendor Plugin
@@ -120,6 +123,8 @@ class Plugin extends CraftPlugin
         $this->_registerProjectConfigEventListeners();
         $this->_registerEventHandlers();
         $this->_registerPermissions();
+        $this->_registerHooks();
+        $this->_registerBehaviors();
 
         Craft::info(
             Craft::t(
@@ -176,7 +181,7 @@ class Plugin extends CraftPlugin
             Elements::EVENT_REGISTER_ELEMENT_TYPES,
             function (RegisterComponentTypesEvent $event) {
                 $event->types[] = Vendor::class;
-                $event->types[] = Order::class;
+                $event->types[] = SubOrder::class;
             }
         );
     }
@@ -243,6 +248,7 @@ class Plugin extends CraftPlugin
             // 'commerce/orders' => self::PLUGIN_HANDLE.'/orders/order-index',
             // 'commerce/orders/<orderId:\d+>' => self::PLUGIN_HANDLE.'/orders/edit-order',
             // 'commerce/orders/<orderStatusHandle:{handle}>' => self::PLUGIN_HANDLE.'/orders/order-index',
+            'commerce/settings/vendorordersettings' => self::PLUGIN_HANDLE.'/vendor-order-settings/edit',
 
             'commerce/settings/vendortypes' => self::PLUGIN_HANDLE.'/vendor-types/vendor-type-index',
             'commerce/settings/vendortypes/<vendorTypeId:\d+>' => self::PLUGIN_HANDLE.'/vendor-types/edit-vendor-type',
@@ -277,6 +283,12 @@ class Plugin extends CraftPlugin
             ->onRemove(VendorTypes::CONFIG_VENDORTYPES_KEY . '.{uid}', [$vendorTypeService, 'handleDeletedVendorType']);
         Event::on(Fields::class, Fields::EVENT_AFTER_DELETE_FIELD, [$vendorTypeService, 'pruneDeletedField']);
         Event::on(Sites::class, Sites::EVENT_AFTER_DELETE_SITE, [$vendorTypeService, 'pruneDeletedSite']);
+
+        $ordersService = $this->getOrders();
+        $projectConfigService->onAdd(OrdersService::CONFIG_FIELDLAYOUT_KEY, [$ordersService, 'handleChangedFieldLayout'])
+            ->onUpdate(OrdersService::CONFIG_FIELDLAYOUT_KEY, [$ordersService, 'handleChangedFieldLayout'])
+            ->onRemove(OrdersService::CONFIG_FIELDLAYOUT_KEY, [$ordersService, 'handleDeletedFieldLayout']);
+        Event::on(Fields::class, Fields::EVENT_AFTER_DELETE_FIELD, [$ordersService, 'pruneDeletedField']);
     }
 
     private function _registerEventHandlers()
@@ -305,6 +317,24 @@ class Plugin extends CraftPlugin
             }
 
             $event->permissions[self::t('Craft Commerce')]['commerce-manageVendors'] = ['label' => self::t('Manage vendors'), 'nested' => $vendorTypePermissions];
+        });
+    }
+
+    private function _registerHooks()
+    {
+        Craft::$app->view->hook('cp.commerce.order.edit', function(array &$context) {
+            array_splice($context['tabs'], 1, 0, [[
+                'label' => 'Vendor Orders',
+                'url' => '#vendorOrdersTab',
+                'class' => ''
+            ]]);
+        });
+    }
+
+    private function _registerBehaviors()
+    {
+        Event::on(Order::class, Order::EVENT_DEFINE_BEHAVIORS, function(DefineBehaviorsEvent $event) {
+            $event->behaviors[] = OrderBehavior::class;
         });
     }
 }

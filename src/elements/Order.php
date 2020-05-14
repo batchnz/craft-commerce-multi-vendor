@@ -63,6 +63,12 @@ class Order extends CommerceOrder
     private $_lineItems;
 
     /**
+     * Cache for order adjustments
+     * @var array
+     */
+    private $_orderAdjustments;
+
+    /**
      * @inheritdoc
      */
     public function init()
@@ -73,6 +79,37 @@ class Order extends CommerceOrder
         }
 
         parent::init();
+    }
+
+    /**
+     * @return OrderAdjustment[]
+     */
+    public function getAdjustments(): array
+    {
+        if( empty($this->_orderAdjustments) ){
+            $lineItems = $this->getLineItems();
+            $orderAdjustments = $this->_commerceOrder->getAdjustments();
+
+            // Filter out adjustments that don't match line items on this order
+            $lineItemIds = array_column($lineItems, 'id');
+            foreach ($orderAdjustments as $i => $orderAdjustment) {
+                if( !in_array($orderAdjustment->lineItemId, $lineItemIds) ){
+                    unset($orderAdjustments[$i]);
+                }
+            }
+
+            $this->_orderAdjustments = $orderAdjustments;
+        }
+
+        return $this->_orderAdjustments;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOrderAdjustments(): array
+    {
+       return $this->_commerceOrder->getOrderAdjustments();
     }
 
     /**
@@ -89,6 +126,11 @@ class Order extends CommerceOrder
         }
 
         return $this->_lineItems;
+    }
+
+    public function getVendor()
+    {
+        return Vendor::find()->subOrderId($this->id)->one();
     }
 
     /**

@@ -1,0 +1,6 @@
+{% extends "basecommerce/orders/_edit" %}
+
+{% block content %}
+    {{ parent() }}
+    {% include 'commerce/orders/_vendorOrders' %}
+{% endblock %}

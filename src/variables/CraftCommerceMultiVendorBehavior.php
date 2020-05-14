@@ -11,6 +11,8 @@
 namespace batchnz\craftcommercemultivendor\variables;
 
 use batchnz\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\elements\Order as SubOrder;
+use batchnz\craftcommercemultivendor\db\OrderQuery as SubOrderQuery;
 use batchnz\craftcommercemultivendor\elements\Vendor;
 use batchnz\craftcommercemultivendor\elements\db\VendorQuery;
 use batchnz\craftcommercemultivendor\records\VendorType;
@@ -58,6 +60,15 @@ class CraftCommerceMultiVendorBehavior extends Behavior
     public function vendorTypes($criteria = null): ActiveQuery
     {
         $query = VendorType::find();
+        if ($criteria) {
+            Craft::configure($query, $criteria);
+        }
+        return $query;
+    }
+
+    public function subOrders($criteria = null): SubOrderQuery
+    {
+        $query = SubOrder::find();
         if ($criteria) {
             Craft::configure($query, $criteria);
         }

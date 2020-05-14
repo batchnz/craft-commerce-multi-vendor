@@ -16,6 +16,9 @@ use batchnz\craftcommercemultivendor\elements\Vendor;
 
 use Craft;
 use craft\base\Component;
+use craft\events\ConfigEvent;
+use craft\helpers\ProjectConfig as ProjectConfigHelper;
+use craft\models\FieldLayout;
 
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Order as CommerceOrder;
@@ -35,8 +38,73 @@ use craft\commerce\elements\Order as CommerceOrder;
  */
 class Orders extends Component
 {
+    const CONFIG_FIELDLAYOUT_KEY = 'commerce.vendorOrders.fieldLayouts';
+
     // Public Methods
     // =========================================================================
+
+    /**
+     * Handle field layout change
+     *
+     * @param ConfigEvent $event
+     */
+    public function handleChangedFieldLayout(ConfigEvent $event)
+    {
+        $data = $event->newValue;
+
+        ProjectConfigHelper::ensureAllFieldsProcessed();
+        $fieldsService = Craft::$app->getFields();
+
+        if (empty($data) || empty($config = reset($data))) {
+            // Delete the field layout
+            $fieldsService->deleteLayoutsByType(SubOrder::class);
+            return;
+        }
+
+        // Save the field layout
+        $layout = FieldLayout::createFromConfig(reset($data));
+        $layout->id = $fieldsService->getLayoutByType(SubOrder::class)->id;
+        $layout->type = SubOrder::class;
+        $layout->uid = key($data);
+        $fieldsService->saveLayout($layout);
+    }
+
+
+    /**
+     * Prune a deleted field from order field layouts.
+     *
+     * @param FieldEvent $event
+     */
+    public function pruneDeletedField(FieldEvent $event)
+    {
+        /** @var Field $field */
+        $field = $event->field;
+        $fieldUid = $field->uid;
+
+        $projectConfig = Craft::$app->getProjectConfig();
+        $layoutData = $projectConfig->get(self::CONFIG_FIELDLAYOUT_KEY);
+
+        // Prune the UID from field layouts.
+        if (is_array($layoutData)) {
+            foreach ($layoutData as $layoutUid => $layout) {
+                if (!empty($layout['tabs'])) {
+                    foreach ($layout['tabs'] as $tabUid => $tab) {
+                        $projectConfig->remove(self::CONFIG_FIELDLAYOUT_KEY . '.' . $layoutUid . '.tabs.' . $tabUid . '.fields.' . $fieldUid);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle field layout being deleted
+     *
+     * @param ConfigEvent $event
+     */
+    public function handleDeletedFieldLayout(ConfigEvent $event)
+    {
+        Craft::$app->getFields()->deleteLayoutsByType(SubOrder::class);
+    }
 
     /**
      * Generates the order split for each vendor, from the main order

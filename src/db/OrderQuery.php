@@ -7,6 +7,8 @@
 
 namespace batchnz\craftcommercemultivendor\db;
 
+use batchnz\craftcommercemultivendor\records\Vendor as VendorRecord;
+
 use Craft;
 use craft\commerce\base\Gateway;
 use craft\commerce\base\GatewayInterface;
@@ -44,6 +46,7 @@ class OrderQuery extends CommerceOrderQuery
 {
     public $vendorId;
     public $commerceOrderId;
+    public $orderByVendors;
 
     public function vendorId($value)
     {
@@ -79,6 +82,12 @@ class OrderQuery extends CommerceOrderQuery
         return $this;
     }
 
+    public function orderByVendors($value = SORT_ASC)
+    {
+        $this->orderByVendors = $value;
+        return $this;
+    }
+
     protected function beforePrepare(): bool
     {
         parent::beforePrepare();
@@ -107,10 +116,21 @@ class OrderQuery extends CommerceOrderQuery
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_orders.vendorId', $this->vendorId));
         }
 
+        if( $this->orderByVendors ){
+            $this->_applyOrderByVendors();
+        }
+
         // Join to the commerce orders table
         $this->query->innerJoin(TABLE::ORDERS, '[[commerce_orders.id]] = [[commerce_multivendor_orders.commerceOrderId]]');
         $this->subQuery->innerJoin(TABLE::ORDERS, '[[commerce_orders.id]] = [[commerce_multivendor_orders.commerceOrderId]]');
 
         return true;
+    }
+
+    private function _applyOrderByVendors()
+    {
+        $this->query->innerJoin(VendorRecord::tableName() . ' vendors', '[[vendors.id]] = [[commerce_multivendor_orders.vendorId]]');
+        $this->query->innerJoin('content' . ' vendorContent', '[[vendors.id]] = [[vendorContent.elementId]]');
+        $this->query->orderBy(['vendorContent.title' => $this->orderByVendors]);
     }
 }

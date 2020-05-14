@@ -2,6 +2,7 @@
 namespace batchnz\craftcommercemultivendor\elements\db;
 
 use batchnz\craftcommercemultivendor\records\VendorType;
+use batchnz\craftcommercemultivendor\records\Order as SubOrderRecord;
 
 use Craft;
 use craft\db\Table;
@@ -38,6 +39,11 @@ class VendorQuery extends ElementQuery
      * @var UserQuery|array only return vendors that match the resulting user query.
      */
     public $hasUser;
+
+    /**
+     * @var  SubOrder|int The sub order the resulting vendors must have.
+     */
+    public $subOrderId;
 
     /**
      * @var mixed The Post Date that the resulting vendors must have.
@@ -119,6 +125,23 @@ class VendorQuery extends ElementQuery
     public function hasUser($value)
     {
         $this->hasUser = $value;
+        return $this;
+    }
+
+    public function subOrderId($value)
+    {
+        $this->subOrderId = $value;
+        return $this;
+    }
+
+    public function subOrder($value = null)
+    {
+        if ($value) {
+            $this->subOrderId = $value->id;
+        } else {
+            $this->subOrderId = null;
+        }
+
         return $this;
     }
 
@@ -225,6 +248,11 @@ class VendorQuery extends ElementQuery
 
         if( $this->stripe_scope ){
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_vendors.stripe_scope', $this->stripe_scope));
+        }
+
+        if( $this->subOrderId ){
+            $this->subQuery->innerJoin(SubOrderRecord::tableName() . ' suborder', '[[commerce_multivendor_vendors.id]] = [[suborder.vendorId]]');
+            $this->subQuery->andWhere(Db::parseParam('suborder.id', $this->subOrderId));
         }
 
         if ($this->postDate) {
