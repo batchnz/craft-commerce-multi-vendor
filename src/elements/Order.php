@@ -135,6 +135,14 @@ class Order extends CommerceOrder
 
     /**
      * @inheritdoc
+     */
+    public function getFieldLayout()
+    {
+        return Craft::$app->getFields()->getLayoutByType(self::class);
+    }
+
+    /**
+     * @inheritdoc
      * @return OrderQuery The newly created [[OrderQuery]] instance.
      */
     public static function find(): ElementQueryInterface
@@ -187,7 +195,7 @@ class Order extends CommerceOrder
      */
     public function rules()
     {
-        return [];
+        return Element::rules();
     }
 
     /**

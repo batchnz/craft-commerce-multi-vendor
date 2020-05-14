@@ -165,6 +165,25 @@ class Orders extends Component
     }
 
     /**
+     * Get an order by its ID.
+     *
+     * @param int $id
+     * @return Order|null
+     */
+    public function getOrderById(int $id)
+    {
+        if (!$id) {
+            return null;
+        }
+
+        $query = SubOrder::find();
+        $query->id($id);
+        $query->status(null);
+
+        return $query->one();
+    }
+
+    /**
      * Returns orders for the passed vendor
      * @author Josh Smith <josh@batch.nz>
      * @return array
