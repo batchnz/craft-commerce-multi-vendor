@@ -2,7 +2,7 @@
     "name": "batchnz/craft-commerce-multi-vendor",
     "description": "Support multi vendors on your Craft Commerce store.",
     "type": "craft-plugin",
-    "version": "1.0.0-alpha.17",
+    "version": "1.0.0-alpha.18",
     "keywords": [
         "craft",
         "cms",
