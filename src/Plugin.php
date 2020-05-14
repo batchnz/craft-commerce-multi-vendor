@@ -323,6 +323,11 @@ class Plugin extends CraftPlugin
     private function _registerHooks()
     {
         Craft::$app->view->hook('cp.commerce.order.edit', function(array &$context) {
+            // Check if this order has vendor orders
+            $order = $context['order'];
+            if( !$order->hasSubOrders() ) return;
+
+            // Add the vendor orders tab
             array_splice($context['tabs'], 1, 0, [[
                 'label' => 'Vendor Orders',
                 'url' => '#vendorOrdersTab',

@@ -19,4 +19,14 @@ class Order extends Behavior
     {
         return SubOrder::find()->commerceOrderId($this->owner->id)->all();
     }
+
+     /**
+     * Returns sub orders for the current order
+     * @author Josh Smith <josh@batch.nz>
+     * @return array
+     */
+    public function hasSubOrders()
+    {
+        return SubOrder::find()->commerceOrderId($this->owner->id)->exists();
+    }
 }
