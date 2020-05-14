@@ -229,4 +229,16 @@ class Order extends CommerceOrder
 
         return Element::afterSave($isNew);
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getIsEditable(): bool
+    {
+        if( !$this->isCompleted ) {
+            return true;
+        }
+
+        return Craft::$app->getUser()->checkPermission('commerce-multi-vendor-manageOrders');
+    }
 }

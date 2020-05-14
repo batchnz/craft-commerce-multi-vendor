@@ -326,7 +326,7 @@ class Vendor extends Element
         if ($this->getType()) {
             $uid = $this->getType()->uid;
 
-            return Craft::$app->getUser()->checkPermission('commerce-manageVendorType:' . $uid);
+            return Craft::$app->getUser()->checkPermission('commerce-multi-vendor-manageVendorType:' . $uid);
         }
 
         return false;

@@ -313,10 +313,11 @@ class Plugin extends CraftPlugin
             $vendorTypePermissions = [];
             foreach ($vendorTypes as $vendorType) {
                 $suffix = ':' . $vendorType->uid;
-                $vendorTypePermissions['commerce-manageVendorType' . $suffix] = ['label' => self::t('Manage “{type}” vendors', ['type' => $vendorType->name])];
+                $vendorTypePermissions['commerce-multi-vendor-manageVendorType' . $suffix] = ['label' => self::t('Manage “{type}” vendors', ['type' => $vendorType->name])];
             }
 
-            $event->permissions[self::t('Craft Commerce')]['commerce-manageVendors'] = ['label' => self::t('Manage vendors'), 'nested' => $vendorTypePermissions];
+            $event->permissions[self::t('Craft Commerce Multi Vendor')]['commerce-multi-vendor-manageOrders'] = ['label' => self::t('Manage orders')];
+            $event->permissions[self::t('Craft Commerce Multi Vendor')]['commerce-multi-vendor-manageVendors'] = ['label' => self::t('Manage vendors'), 'nested' => $vendorTypePermissions];
         });
     }
 

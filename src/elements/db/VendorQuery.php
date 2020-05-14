@@ -11,10 +11,10 @@ use craft\elements\User;
 use craft\elements\db\UserQuery;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
-
 use craft\commerce\db\Table as CommerceTable;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\db\ProductQuery;
+use DateTime;
 
 class VendorQuery extends ElementQuery
 {
@@ -256,11 +256,11 @@ class VendorQuery extends ElementQuery
         }
 
         if ($this->postDate) {
-            $this->subQuery->andWhere(Db::parseDateParam('commerce_products.postDate', $this->postDate));
+            $this->subQuery->andWhere(Db::parseDateParam('commerce_multivendor_vendors.postDate', $this->postDate));
         }
 
         if ($this->expiryDate) {
-            $this->subQuery->andWhere(Db::parseDateParam('commerce_products.expiryDate', $this->expiryDate));
+            $this->subQuery->andWhere(Db::parseDateParam('commerce_multivendor_vendors.expiryDate', $this->expiryDate));
         }
 
         if( $this->typeId ){
@@ -271,6 +271,52 @@ class VendorQuery extends ElementQuery
         $this->_applyHasUserParam();
 
         return parent::beforePrepare();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function statusCondition(string $status)
+    {
+        $currentTimeDb = Db::prepareDateForDb(new DateTime());
+
+        switch ($status) {
+            case Product::STATUS_LIVE:
+                return [
+                    'and',
+                    [
+                        'elements.enabled' => true,
+                        'elements_sites.enabled' => true
+                    ],
+                    ['<=', 'commerce_multivendor_vendors.postDate', $currentTimeDb],
+                    [
+                        'or',
+                        ['commerce_multivendor_vendors.expiryDate' => null],
+                        ['>', 'commerce_multivendor_vendors.expiryDate', $currentTimeDb]
+                    ]
+                ];
+            case Product::STATUS_PENDING:
+                return [
+                    'and',
+                    [
+                        'elements.enabled' => true,
+                        'elements_sites.enabled' => true,
+                    ],
+                    ['>', 'commerce_multivendor_vendors.postDate', $currentTimeDb]
+                ];
+            case Product::STATUS_EXPIRED:
+                return [
+                    'and',
+                    [
+                        'elements.enabled' => true,
+                        'elements_sites.enabled' => true
+                    ],
+                    ['not', ['commerce_multivendor_vendors.expiryDate' => null]],
+                    ['<=', 'commerce_multivendor_vendors.expiryDate', $currentTimeDb]
+                ];
+            default:
+                return parent::statusCondition($status);
+        }
     }
 
     private function _applyHasProductParam()

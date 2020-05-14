@@ -28,7 +28,7 @@ use yii\web\Response;
 /**
  * Class Vendors Controller
  */
-class VendorsController extends Controller
+class VendorsController extends BaseVendorController
 {
     // Public Methods
     // =========================================================================

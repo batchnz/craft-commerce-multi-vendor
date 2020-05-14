@@ -7,14 +7,12 @@ use batchnz\craftcommercemultivendor\Plugin;
 use batchnz\craftcommercemultivendor\services\Orders;
 use batchnz\craftcommercemultivendor\elements\Order as SubOrder;
 use craft\base\Element;
-use craft\commerce\controllers\BaseCpController;
-use craft\commerce\Plugin as CommercePlugin;
 use yii\base\Exception;
 
 /**
  * Class Vendor Orders Controller
  */
-class VendorOrdersController extends BaseCpController
+class VendorOrdersController extends BaseVendorController
 {
     // Public Methods
     // =========================================================================
@@ -35,6 +33,8 @@ class VendorOrdersController extends BaseCpController
 
         $request = Craft::$app->getRequest();
         $order = $this->_setOrderFromPost();
+
+        $this->enforceOrderPermissions($order);
 
         $order->setScenario(Element::SCENARIO_LIVE);
 

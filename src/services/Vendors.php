@@ -34,6 +34,24 @@ class Vendors extends Component
     // =========================================================================
 
     /**
+     * Returns whether the logged in user is associated with the passed Vendor
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Vendor $vendor
+     * @return boolean
+     */
+    public function getIsVendor(Vendor $vendor)
+    {
+        $user = Craft::$app->getUser();
+        $identity = $user->getIdentity();
+        $isNew = !$vendor->id;
+
+        // Ensure the vendor is associated with the logged in user
+        return $isNew ?
+            in_array($identity->id, $vendor->user->id) : // New vendors must have an associated user ID
+            $vendor->hasUser($identity);
+    }
+
+    /**
      * Get a vendor by ID.
      *
      * @param int $id
