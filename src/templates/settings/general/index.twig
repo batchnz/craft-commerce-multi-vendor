@@ -1,0 +1,55 @@
+{% extends "craft-commerce-multi-vendor/_layouts/settings" %}
+
+{% set selectedTab = 'settings' %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+
+    <h2>{{ "General Settings"|t('craft-commerce-multi-vendor') }}</h2>
+
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+        <input type="hidden" name="action" value="craft-commerce-multi-vendor/settings/save-settings">
+        {{ redirectInput('commerce-multi-vendor/settings/general') }}
+        {{ csrfInput() }}
+
+        <h3>{{ 'Plugin Settings'|t('craft-commerce-multi-vendor') }}</h3>
+        {{ forms.textField({
+            label: "Nav Label"|t('craft-commerce-multi-vendor'),
+            instructions: "The nav label used in the sidebar."|t('craft-commerce-multi-vendor'),
+            id: 'navLabel',
+            name: 'settings[navLabel]',
+            value: settings.navLabel,
+            errors: settings.getErrors('navLabel'),
+            required: true,
+        }) }}
+
+        <h3>{{ 'PDF Settings'|t('craft-commerce-multi-vendor') }}</h3>
+        {{ forms.textField({
+            label: "Purchase Order PDF Template"|t('craft-commerce-multi-vendor'),
+            instructions: "The path to the template used for generating purchase order PDFs."|t('craft-commerce-multi-vendor'),
+            id: 'purchaseOrderPdfPath',
+            name: 'settings[purchaseOrderPdfPath]',
+            value: settings.purchaseOrderPdfPath,
+            errors: settings.getErrors('purchaseOrderPdfPath'),
+            required: true,
+        }) }}
+
+        {{ forms.textField({
+            label: "Purchase Order PDF Filename Format"|t('craft-commerce-multi-vendor'),
+            instructions: "What the purchase order PDF filenames should look like (sans extension). You can include tags that output purchase order properties, such as {ex1} or {ex2}."|t('craft-commerce-multi-vendor', {
+                ex1: '<code>{number}</code>',
+                ex2: '<code>{myPurchaseOrderCustomField}</code>'
+            }),
+            id: 'purchaseOrderPdfFilenameFormat',
+            name: 'settings[purchaseOrderPdfFilenameFormat]',
+            value: settings.purchaseOrderPdfFilenameFormat,
+            class: 'code ltr',
+            errors: settings.getErrors('purchaseOrderPdfFilenameFormat'),
+            required: true,
+        }) }}
+
+        <input type="submit" class="btn submit" value="{{ 'Save'|t('craft-commerce-multi-vendor') }}">
+    </form>
+
+{% endblock %}

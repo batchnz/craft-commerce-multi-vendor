@@ -1,0 +1,42 @@
+{% extends "_layouts/cp" %}
+{% set selectedSubnavItem = 'platform-settings' %}
+{% set bodyClass = (bodyClass is defined ? bodyClass~' ' : '') ~ "commercesettings" %}
+
+{% set title = "Platform Settings"|t('craft-commerce-multi-vendor') %}
+
+{% set navItems = {} %}
+
+{% if currentUser.admin or currentUser.can('commerce-manageStoreSettings')%}
+{% set navItems = {
+    'platform-heading': { heading: "Platform"|t('craft-commerce-multi-vendor'), minEdition: 'lite' },
+    'commission': { title: "Platform Commission"|t('craft-commerce-multi-vendor'), minEdition: 'lite' },
+
+} %}
+{% endif %}
+
+{% if selectedItem is not defined %}
+    {% set selectedItem = craft.app.request.getSegment(3) %}
+{% endif %}
+
+{% if selectedItem %}
+{% set docTitle = navItems[selectedItem].title~' - '~title %}
+{% else %}
+{% set docTitle = 'Platform Settings' %}
+{% endif %}
+
+{% block sidebar %}
+    <nav>
+        <ul>
+            {% for handle, item in navItems if craft.commerce.is(item.minEdition, '>=') %}
+                {% if item.heading is defined %}
+                    <li class="heading"><span>{{ item.heading }}</span></li>
+                {% else %}
+                    <li>
+                        <a href="{{ url('commerce-multi-vendor/platform-settings/'~handle) }}"{% if handle == selectedItem %} class="sel"{% endif %}>{{ item.title }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}
+

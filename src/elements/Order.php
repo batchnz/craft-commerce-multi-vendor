@@ -134,6 +134,33 @@ class Order extends CommerceOrder
     }
 
     /**
+     * Returns the URL to the order’s purchase order PDF.
+     *
+     * @param string|null $option The option that should be available to the PDF template (e.g. “receipt”)
+     * @return string|null The URL to the order’s PDF invoice, or null if the PDF template doesn’t exist
+     * @throws Exception
+     */
+    public function getPurchaseOrderPdfUrl($option = null)
+    {
+        $url = null;
+        $view = Craft::$app->getView();
+        $oldTemplateMode = $view->getTemplateMode();
+        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+        $file = Plugin::getInstance()->getSettings()->orderPdfPath;
+
+        if (!$file || !$view->doesTemplateExist($file)) {
+            $view->setTemplateMode($oldTemplateMode);
+            return null;
+        }
+        $view->setTemplateMode($oldTemplateMode);
+
+        $path = "commerce/downloads/pdf?number={$this->number}" . ($option ? "&option={$option}" : '');
+        $url = UrlHelper::actionUrl(trim($path, '/'));
+
+        return $url;
+    }
+
+    /**
      * @inheritdoc
      */
     public function getFieldLayout()

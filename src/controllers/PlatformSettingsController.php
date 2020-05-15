@@ -31,9 +31,14 @@ class PlatformSettingsController extends Controller
 
     public function actionIndex()
     {
+        $this->redirect('commerce-multi-vendor/platform-settings/commission');
+    }
+
+    public function actionCommission()
+    {
         $params = Craft::$app->getUrlManager()->getRouteParams();
         $settings = PlatformSettingsRecord::find()->one();
-        $this->renderTemplate(Plugin::PLUGIN_HANDLE, array_merge($params, ['settings' => $settings]));
+        $this->renderTemplate(Plugin::PLUGIN_HANDLE.'/platform-settings/commission', array_merge($params, ['settings' => $settings]));
     }
 
     /**

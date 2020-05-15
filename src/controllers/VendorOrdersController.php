@@ -6,6 +6,7 @@ use Craft;
 use batchnz\craftcommercemultivendor\Plugin;
 use batchnz\craftcommercemultivendor\services\Orders;
 use batchnz\craftcommercemultivendor\elements\Order as SubOrder;
+use batchnz\craftcommercemultivendor\events\ModifyOrderInfoEvent;
 use craft\base\Element;
 use yii\base\Exception;
 
@@ -14,6 +15,11 @@ use yii\base\Exception;
  */
 class VendorOrdersController extends BaseVendorController
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_MODIFY_ORDER_INFO = 'modifyOrderInfo';
+
     // Public Methods
     // =========================================================================
 
@@ -47,10 +53,18 @@ class VendorOrdersController extends BaseVendorController
         }
 
         if( $request->getIsAjax() ){
+
+            // Fire a 'modifyOrderInfo' event
+            $event = new ModifyOrderInfoEvent([
+                'order' => $order,
+                'orderInfo' => $order->toArray(),
+            ]);
+            $this->trigger(self::EVENT_MODIFY_ORDER_INFO, $event);
+
             return $this->asJson([
                 'result' => 'success',
                 'message' => 'Order successfully saved',
-                'order' => $order
+                'order' => $event->orderInfo
             ]);
         }
 

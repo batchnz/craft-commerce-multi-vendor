@@ -152,12 +152,17 @@
                     </tbody>
                 </table>
                 <div style="margin-top: 24px; text-align: right;">
-                    {% if subOrder.invoice is defined and subOrder.invoice | length %}
-                        <a style="margin-right: 10px;" class="btn" href="#">View Invoice</a>
-                        <button class="btn submit">Transfer {{ subOrder.totalPrice|currency(subOrder.currency) }}</button>
-                    {% else %}
-                        <span class="commerceStatusLabel"><span class="status red"></span> Waiting for Invoice</span>
-                    {% endif %}
+                    {# {% if subOrder.invoice is defined and subOrder.invoice | length %} #}
+                        <form method="post" accept-charset="UTF-8">
+                            {{ csrfInput() }}
+                            {{ hiddenInput('orderId', subOrder.id) }}
+                            {{ actionInput('craft-commerce-multi-vendor/vendor-orders/save-order') }}
+                            <a style="margin-right: 10px;" class="btn" href="#">View Invoice</a>
+                            <button class="btn submit">Transfer {{ subOrder.totalPrice|currency(subOrder.currency) }}</button>
+                        </form>
+                    {# {% else %} #}
+                        {# <span class="commerceStatusLabel"><span class="status red"></span> Waiting for Invoice</span> #}
+                    {# {% endif %} #}
                 </div>
             </div>
         {% endif %}

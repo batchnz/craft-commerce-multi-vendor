@@ -1,0 +1,42 @@
+{% extends "craft-commerce-multi-vendor/_layouts/platform-settings" %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+
+    <h2>{{ "Platform Commission"|t('craft-commerce-multi-vendor') }}</h2>
+
+    <p>{{ 'This is where you can set the platform commission type and rate.'|t('craft-commerce-multi-vendor') }}</p>
+
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+        {{ redirectInput('commerce-multi-vendor/platform-settings/commission') }}
+        {{ csrfInput() }}
+
+        {{ forms.hidden({
+            name: 'action',
+            value: 'craft-commerce-multi-vendor/platform-settings/save'
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Select Commission Type',
+            instructions: 'Choose whether the commission is charged at a percentage or a fixed amount.',
+            id: 'commissionType',
+            name: 'settings[commissionType]',
+            errors: errors['commissionType'] ?? null,
+            options: {'percentage': 'Percentage', 'amount': 'Amount'},
+            value: settings['commissionType'] ?? ''})
+        }}
+
+        {{ forms.textField({
+            label: 'Commission Rate',
+            instructions: 'Enter the rate at which the platform charges its commission at.',
+            id: 'commission',
+            unit: '',
+            errors: errors['commission'] ?? null,
+            name: 'settings[commission]',
+            value: settings['commission'] ?? '0.00'})
+        }}
+
+        <input type="submit" class="submit btn" value="{{ 'Save'|t }}">
+    </form>
+{% endblock %}

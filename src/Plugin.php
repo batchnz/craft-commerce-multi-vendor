@@ -23,6 +23,7 @@ use batchnz\craftcommercemultivendor\plugin\Services as CommerceMultiVendorServi
 use batchnz\craftcommercemultivendor\services\Orders as OrdersService;
 use batchnz\craftcommercemultivendor\services\VendorTypes;
 use batchnz\craftcommercemultivendor\fields\Vendors;
+use batchnz\craftcommercemultivendor\models\Settings;
 
 use Craft;
 use craft\base\Element;
@@ -151,13 +152,40 @@ class Plugin extends CraftPlugin
 
     public function getCpNavItem()
     {
-        $parent = parent::getCpNavItem();
-        $parent['label'] = 'Platform Settings';
-        return $parent;
+        $navItem = parent::getCpNavItem();
+        $navItem['label'] = self::t($this->getSettings()->navLabel);
+        $navItem['url'] = 'commerce-multi-vendor';
+
+        $navItem['subnav']['platform-settings'] = [
+            'label' => self::t('Platform Settings'),
+            'url' => 'commerce-multi-vendor/platform-settings'
+        ];
+        $navItem['subnav']['settings'] = [
+            'label' => self::t('System Settings'),
+            'url' => 'commerce-multi-vendor/settings'
+        ];
+
+        return $navItem;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getSettingsResponse()
+    {
+        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('commerce-multi-vendor/settings/general'));
     }
 
     // Protected Methods
     // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    protected function createSettingsModel()
+    {
+        return new Settings();
+    }
 
     // Private Methods
     // =========================================================================
@@ -234,6 +262,15 @@ class Plugin extends CraftPlugin
         $urlManager = Craft::$app->getUrlManager();
 
         $urlManager->addRules([
+
+            'commerce-multi-vendor' => ['template' => self::PLUGIN_HANDLE.'/index'],
+            'commerce-multi-vendor/platform-settings' => self::PLUGIN_HANDLE.'/platform-settings',
+            'commerce-multi-vendor/platform-settings/commission' => self::PLUGIN_HANDLE.'/platform-settings/commission',
+
+            'commerce-multi-vendor/settings' => self::PLUGIN_HANDLE.'/settings',
+            'commerce-multi-vendor/settings/general' => self::PLUGIN_HANDLE.'/settings/edit',
+
+            'commerce/store-settings/location' => 'commerce/store-location/edit-location',
 
             // Vendor routes
             'commerce/vendors' => self::PLUGIN_HANDLE.'/vendors/vendor-index',
