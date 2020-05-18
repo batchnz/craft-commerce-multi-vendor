@@ -49,6 +49,7 @@ class SettingsController extends BaseAdminController
         $settings->navLabel = $data['navLabel'] ?? $settings->navLabel;
         $settings->purchaseOrderPdfPath = $data['purchaseOrderPdfPath'] ?? $settings->purchaseOrderPdfPath;
         $settings->purchaseOrderPdfFilenameFormat = $data['purchaseOrderPdfFilenameFormat'] ?? $settings->purchaseOrderPdfFilenameFormat;
+        $settings->orderReferenceFormat = $data['orderReferenceFormat'] ?? $settings->orderReferenceFormat;
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('craft-commerce-multi-vendor', 'Couldn’t save settings.'));

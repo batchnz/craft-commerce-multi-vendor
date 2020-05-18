@@ -32,7 +32,7 @@
                             { label: "Description", value: lineItem.description },
                             { label: "Tax Category", value: lineItem.taxCategory.name },
                             { label: "Shipping Category", value: lineItem.shippingCategory.name },
-                            { label: "Price", value: lineItem.price|currency(subOrder.currency) },
+                            { label: "Price", value: lineItem.snapshot.price|currency(subOrder.currency) },
                             { label: "Sale Amount", value: lineItem.saleAmount|currency(subOrder.currency) },
                             { label: "Sale Price", value: lineItem.salePrice|currency(subOrder.currency) },
                             { label: "Quantity", value: lineItem.qty },
@@ -74,14 +74,14 @@
                                 {% endif %}
                             </td>
                             <td data-title="{{ 'Price'|t('commerce') }}">
-                                {{ lineItem.salePrice|currency(subOrder.currency) }}
+                                {{ lineItem.snapshot.price|currency(subOrder.currency) }}
                             </td>
                             <td data-title="{{ 'Qty'|t('commerce') }}">
                                 {{ lineItem.qty }}
                             </td>
                             <td></td>
                             <td data-title="{{ 'Sub-total'|t('commerce') }}">
-                                <span class="right">{{ lineItem.subtotal|currency(subOrder.currency) }}</span>
+                                <span class="right">{{ (lineItem.qty * lineItem.snapshot.price)|currency(subOrder.currency) }}</span>
                             </td>
                             <td>
                                     <span class="tableRowInfo" data-icon="info"
@@ -112,7 +112,7 @@
                         <td></td>
                         <td><strong>{{ "Items Total (with adjustments)"|t('commerce') }}</strong></td>
                         <td>
-                            <span class="right">{{ subOrder.itemTotal|currency(subOrder.currency) }}</span>
+                            <span class="right">{{ (subOrder.vendorTotal + subOrder.adjustmentsTotal)|currency(subOrder.currency) }}</span>
                         </td>
                         <td></td>
                     </tr>
@@ -145,24 +145,28 @@
                         <td></td>
                         <td><h2>{{ "Total Price"|t('commerce') }}</h2></td>
                         <td>
-                            <h2 class="right">{{ subOrder.totalPrice|currency(subOrder.currency) }}</h2>
+                            <h2 class="right">{{ (subOrder.vendorTotal + subOrder.adjustmentsTotal)|currency(subOrder.currency) }}</h2>
                         </td>
                         <td></td>
                     </tr>
                     </tbody>
                 </table>
                 <div style="margin-top: 24px; text-align: right;">
-                    {# {% if subOrder.invoice is defined and subOrder.invoice | length %} #}
+                    {% if subOrder.invoice is defined and subOrder.invoice | length %}
                         <form method="post" accept-charset="UTF-8">
                             {{ csrfInput() }}
                             {{ hiddenInput('orderId', subOrder.id) }}
                             {{ actionInput('craft-commerce-multi-vendor/vendor-orders/save-order') }}
-                            <a style="margin-right: 10px;" class="btn" href="#">View Invoice</a>
-                            <button class="btn submit">Transfer {{ subOrder.totalPrice|currency(subOrder.currency) }}</button>
+                            <a style="margin-right: 10px;" target="_blank" class="btn" href="{{ subOrder.invoice.one().url ?? '#' }}">View Invoice</a>
+                            {% if subOrder.isCompleted %}
+                                <span class="commerceStatusLabel"><span class="status green"></span> Order Completed</span>
+                            {% else %}
+                                <button class="btn submit">Transfer {{ (subOrder.vendorTotal + subOrder.adjustmentsTotal)|currency(subOrder.currency) }}</button>
+                            {% endif %}
                         </form>
-                    {# {% else %} #}
-                        {# <span class="commerceStatusLabel"><span class="status red"></span> Waiting for Invoice</span> #}
-                    {# {% endif %} #}
+                    {% else %}
+                        <span class="commerceStatusLabel"><span class="status red"></span> Waiting for Invoice</span>
+                    {% endif %}
                 </div>
             </div>
         {% endif %}

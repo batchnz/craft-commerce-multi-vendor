@@ -156,12 +156,38 @@ class Orders extends Component
      */
     protected function buildSubOrder($order, $vendor, $defaultOrderStatus)
     {
-        return new SubOrder([
+        $suborder = new SubOrder([
             'commerceOrderId' => $order->id,
             'vendorId' => $vendor->id,
             'orderStatusId' => $defaultOrderStatus ? $defaultOrderStatus->id : null,
-            'isCompleted' => 0,
+            'isCompleted' => 1,
+            'number' => Commerce::getInstance()->getCarts()->generateCartNumber()
         ]);
+
+        $suborder->reference = $this->generateReference($suborder);
+
+        return $suborder;
+    }
+
+    /**
+     * Generates a reference from an order
+     * @author Josh Smith <josh@batch.nz>
+     * @param  SubOrder $order
+     * @return string
+     */
+    public function generateReference(SubOrder $order)
+    {
+        $reference = '';
+        $referenceTemplate = CommerceMultiVendor::getInstance()->getSettings()->orderReferenceFormat;
+
+        try {
+            $reference = Craft::$app->getView()->renderObjectTemplate($referenceTemplate, $order);
+        } catch (Throwable $exception) {
+            Craft::error('Unable to generate order reference for order ID: ' . $order->id . ', with format: ' . $referenceTemplate . ', error: ' . $exception->getMessage());
+            throw $exception;
+        }
+
+        return $reference;
     }
 
     /**
@@ -178,6 +204,25 @@ class Orders extends Component
 
         $query = SubOrder::find();
         $query->id($id);
+        $query->status(null);
+
+        return $query->one();
+    }
+
+    /**
+     * Get an order by its number.
+     *
+     * @param string $number
+     * @return Order|null
+     */
+    public function getOrderByNumber(string $number)
+    {
+        if (!$number) {
+            return null;
+        }
+
+        $query = SubOrder::find();
+        $query->number($number);
         $query->status(null);
 
         return $query->one();

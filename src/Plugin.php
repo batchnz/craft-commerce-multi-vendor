@@ -99,7 +99,7 @@ class Plugin extends CraftPlugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.1';
+    public $schemaVersion = '1.0.3';
 
     /**
      * Plugin initialisation
@@ -267,10 +267,10 @@ class Plugin extends CraftPlugin
             'commerce-multi-vendor/platform-settings' => self::PLUGIN_HANDLE.'/platform-settings',
             'commerce-multi-vendor/platform-settings/commission' => self::PLUGIN_HANDLE.'/platform-settings/commission',
 
+            'commerce-multi-vendor/downloads/purchase-orders' => self::PLUGIN_HANDLE.'/downloads/purchase-orders',
+
             'commerce-multi-vendor/settings' => self::PLUGIN_HANDLE.'/settings',
             'commerce-multi-vendor/settings/general' => self::PLUGIN_HANDLE.'/settings/edit',
-
-            'commerce/store-settings/location' => 'commerce/store-location/edit-location',
 
             // Vendor routes
             'commerce/vendors' => self::PLUGIN_HANDLE.'/vendors/vendor-index',

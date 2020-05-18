@@ -46,6 +46,9 @@ class OrderQuery extends CommerceOrderQuery
 {
     public $vendorId;
     public $commerceOrderId;
+    public $number;
+    public $shortNumber;
+    public $reference;
     public $orderByVendors;
 
     public function vendorId($value)
@@ -82,6 +85,24 @@ class OrderQuery extends CommerceOrderQuery
         return $this;
     }
 
+    public function number($value = null)
+    {
+        $this->number = $value;
+        return $this;
+    }
+
+    public function shortNumber($value = null)
+    {
+        $this->shortNumber = $value;
+        return $this;
+    }
+
+    public function reference($value = null)
+    {
+        $this->reference = $value;
+        return $this;
+    }
+
     public function orderByVendors($value = SORT_ASC)
     {
         $this->orderByVendors = $value;
@@ -103,6 +124,8 @@ class OrderQuery extends CommerceOrderQuery
             'commerce_multivendor_orders.commerceOrderId',
             'commerce_multivendor_orders.vendorId',
             'commerce_multivendor_orders.orderStatusId',
+            'commerce_multivendor_orders.number',
+            'commerce_multivendor_orders.reference',
             'commerce_multivendor_orders.isCompleted',
             'commerce_multivendor_orders.dateCreated',
             'commerce_multivendor_orders.dateUpdated'
@@ -114,6 +137,25 @@ class OrderQuery extends CommerceOrderQuery
 
         if ($this->vendorId) {
             $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_orders.vendorId', $this->vendorId));
+        }
+
+        if ($this->number) {
+            unset($this->subQuery->where['commerce_orders.number']);
+            $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_orders.number', $this->number));
+        }
+
+        if ($this->shortNumber !== null) {
+            // If it's set to anything besides a non-empty string, abort the query
+            if (!is_string($this->shortNumber) || $this->shortNumber === '') {
+                return false;
+            }
+            unset($this->subQuery->where['commerce_orders.number']);
+            $this->subQuery->andWhere(new Expression('LEFT([[commerce_multivendor_orders.number]], 7) = :shortNumber', [':shortNumber' => $this->shortNumber]));
+        }
+
+        if ($this->reference) {
+            unset($this->subQuery->where['commerce_orders.reference']);
+            $this->subQuery->andWhere(Db::parseParam('commerce_multivendor_orders.reference', $this->reference));
         }
 
         if( $this->orderByVendors ){

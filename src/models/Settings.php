@@ -40,6 +40,11 @@ class Settings extends Model
      */
     public $purchaseOrderPdfFilenameFormat = '';
 
+    /**
+     * @var string The purchase order reference format
+     */
+    public $orderReferenceFormat = '{{number[:7]}}';
+
     // Public Methods
     // =========================================================================
 

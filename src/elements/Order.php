@@ -17,7 +17,10 @@ use batchnz\craftcommercemultivendor\records\Order as OrderRecord;
 use Craft;
 use craft\base\Element;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\UrlHelper;
+use craft\web\View;
 use craft\commerce\elements\Order as CommerceOrder;
+use craft\commerce\helpers\Currency;
 
 /**
  * Order Element
@@ -74,7 +77,7 @@ class Order extends CommerceOrder
     public function init()
     {
         if( !empty($this->commerceOrderId) ){
-            $order = CommerceOrder::find()->id($this->commerceOrderId)->one();
+            $order = $this->getParentOrder();
             if( !empty($order) ) $this->setOrder($order);
         }
 
@@ -128,9 +131,29 @@ class Order extends CommerceOrder
         return $this->_lineItems;
     }
 
+    public function getParentOrder()
+    {
+        return CommerceOrder::find()->id($this->commerceOrderId)->one();
+    }
+
     public function getVendor()
     {
         return Vendor::find()->subOrderId($this->id)->one();
+    }
+
+    /**
+     * Returns the original product price without any adjustments
+     * @author Josh Smith <josh@batch.nz>
+     * @return float
+     */
+    public function getVendorTotal()
+    {
+        $total = 0;
+        foreach ($this->getLineItems() as $item) {
+            $total += ($item->snapshot['price'] * $item->qty);
+        }
+
+        return Currency::round($total);
     }
 
     /**
@@ -146,7 +169,7 @@ class Order extends CommerceOrder
         $view = Craft::$app->getView();
         $oldTemplateMode = $view->getTemplateMode();
         $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
-        $file = Plugin::getInstance()->getSettings()->orderPdfPath;
+        $file = Plugin::getInstance()->getSettings()->purchaseOrderPdfPath;
 
         if (!$file || !$view->doesTemplateExist($file)) {
             $view->setTemplateMode($oldTemplateMode);
@@ -154,7 +177,7 @@ class Order extends CommerceOrder
         }
         $view->setTemplateMode($oldTemplateMode);
 
-        $path = "commerce/downloads/pdf?number={$this->number}" . ($option ? "&option={$option}" : '');
+        $path = Plugin::PLUGIN_HANDLE."/downloads/purchase-orders?number={$this->number}" . ($option ? "&option={$option}" : '') . "&type=pdf";
         $url = UrlHelper::actionUrl(trim($path, '/'));
 
         return $url;
@@ -185,8 +208,6 @@ class Order extends CommerceOrder
     public function setOrder(CommerceOrder $order)
     {
         // Map commerce order properties onto this object
-        $this->number = $order->number;
-        $this->reference = $order->reference;
         $this->couponCode = $order->couponCode;
         $this->dateOrdered = $order->dateOrdered;
         $this->datePaid = $order->datePaid;
@@ -246,6 +267,8 @@ class Order extends CommerceOrder
         $orderRecord->vendorId = $this->vendorId;
         $orderRecord->orderStatusId = $this->orderStatusId;
         $orderRecord->isCompleted = $this->isCompleted;
+        $orderRecord->number = $this->number;
+        $orderRecord->reference = $this->reference;
         $orderRecord->total = $this->getTotal();
 
         // $orderRecord->totalPrice = $this->getTotalPrice();

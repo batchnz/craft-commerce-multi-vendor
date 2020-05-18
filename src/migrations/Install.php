@@ -65,6 +65,8 @@ class Install extends Migration
                 'commerceOrderId' => $this->integer(),
                 'vendorId' => $this->integer(),
                 'orderStatusId' => $this->integer(),
+                'number' => $this->string(32),
+                'reference' => $this->string(),
                 'isCompleted' => $this->boolean(),
                 'total' => $this->decimal(14,4),
                 'totalPaid' => $this->decimal(14,4),
