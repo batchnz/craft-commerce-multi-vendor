@@ -327,7 +327,7 @@ class VendorQuery extends ElementQuery
             } else {
                 $productQuery = Product::find()
                     ->id($this->hasProduct->id)
-                    ->status($this->hasProduct->status);
+                    ->status(null);
             }
 
             $productQuery->limit = null;
@@ -349,7 +349,7 @@ class VendorQuery extends ElementQuery
             } else {
                 $userQuery = User::find()
                     ->id($this->hasUser->id)
-                    ->status($this->hasUser->status);
+                    ->status(null);
             }
 
             $userQuery->limit = null;
