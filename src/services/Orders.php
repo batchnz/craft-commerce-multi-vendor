@@ -17,6 +17,7 @@ use batchnz\craftcommercemultivendor\elements\Vendor;
 use Craft;
 use craft\base\Component;
 use craft\events\ConfigEvent;
+use craft\events\FieldEvent;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\models\FieldLayout;
 
