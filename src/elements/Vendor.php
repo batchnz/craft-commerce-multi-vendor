@@ -319,6 +319,16 @@ class Vendor extends Element
     }
 
     /**
+     * Returns the user account for this vendor
+     * @author Josh Smith <josh@batch.nz>
+     * @return User
+     */
+    public function getUser()
+    {
+        return User::find()->relatedTo([$this->id])->one();
+    }
+
+    /**
      * @inheritdoc
      */
     public function getIsEditable(): bool

@@ -1,0 +1,47 @@
+{% extends "craft-commerce-multi-vendor/_layouts/settings" %}
+
+{% set selectedTab = 'settings' %}
+
+
+{% block content %}
+    <h2>{{ "Order Statuses"|t('craft-commerce-multi-vendor') }}</h2>
+    <p>{{ "Select an order status to configure emails."|t('craft-commerce-multi-vendor') }}</p>
+
+    <table id="order-statuses" class="data fullwidth collapsible">
+        <thead>
+        <tr>
+            <th scope="col">{{ "Name"|t('craft-commerce-multi-vendor') }}</th>
+            <th scope="col">{{ "Handle"|t('craft-commerce-multi-vendor') }}</th>
+            <th scope="col">{{ "Has Emails?"|t('craft-commerce-multi-vendor') }}</th>
+            <th scope="col">{{ "Default Status?"|t('craft-commerce-multi-vendor') }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for orderStatus in orderStatuses %}
+            <tr data-id="{{ orderStatus.id }}"
+                data-name="{{ orderStatus.handle }}">
+                <th scope="row" data-title="{{ 'Name'|t('craft-commerce-multi-vendor') }}"><a
+                            href="{{ url('commerce-multi-vendor/settings/orderstatuses/'~orderStatus.id) }}">{{ orderStatus.labelHtml|raw }}</a>
+                </th>
+                <td data-title="{{ 'Handle'|t('craft-commerce-multi-vendor') }}"
+                    class="code">{{ orderStatus.handle }}</td>
+                <td data-title="{{ 'Emails'|t('craft-commerce-multi-vendor') }}">
+                    {% if orderStatus.emails | length %}
+                        {{ orderStatus.emails | length }}
+                    {% endif %}
+                </td>
+                <td>{% if orderStatus.default %}<span data-icon="check" title="{{ 'Yes'|t('craft-commerce-multi-vendor') }}"></span>{% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+
+{% js %}
+    new Craft.AdminTable({
+    tableSelector: '#order-statuses',
+    minObjects: 1,
+    });
+{% endjs %}

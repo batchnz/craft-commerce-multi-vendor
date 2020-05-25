@@ -1,0 +1,49 @@
+{% extends "commerce/_layouts/cp" %}
+
+{% set crumbs = [
+    { label: 'Commerce ' ~ 'Settings'|t('commerce'), url: url('commerce-multi-vendor/settings') },
+    { label: 'Order Statuses'|t('commerce'), url: url('commerce-multi-vendor/settings/orderstatuses') }
+] %}
+
+{% set selectedSubnavItem = 'settings' %}
+
+{% set fullPageForm = true %}
+
+{% set selectedTab = 'settings' %}
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    <input type="hidden" name="action" value="craft-commerce-multi-vendor/order-statuses/save">
+    {{ redirectInput('commerce-multi-vendor/settings/orderstatuses') }}
+    <input type="hidden" name="id" value="{{ orderStatus.id }}">
+
+    {% if not emails|length %}
+        {{ forms.field({
+            label: 'Status Emails'|t('commerce'),
+            instructions: '<span class="error">'~'You currently have no emails configured to select for this status.'|t('commerce')~'</span>',
+            disabled: true
+        }) }}
+    {% else %}
+        {{ forms.multiselectField({
+            label: 'Status Emails'|t('commerce'),
+            instructions: 'Select the emails that will be sent when transitioning to this status.'|t('commerce'),
+            id: 'emails',
+            name: 'emails',
+            options: emails,
+            values: emailIds is defined ? emailIds : orderStatus.getEmailIds(),
+            errors: orderStatus.getErrors('emails'),
+            class: 'selectize fullwidth',
+        }) }}
+    {% endif %}
+
+{% endblock %}
+
+{% js %}
+    {% if not orderStatus.handle %}new Craft.HandleGenerator('#name', '#handle');{% endif %}
+    $(function () {
+        $('#emails').selectize({
+            plugins: ['remove_button'],
+            dropdownParent: 'body'
+        });
+    });
+{% endjs %}

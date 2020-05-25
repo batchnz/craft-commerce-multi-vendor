@@ -6,7 +6,10 @@ use Craft;
 use craft\db\Migration;
 use craft\helpers\MigrationHelper;
 use craft\commerce\db\Table;
+use batchnz\craftcommercemultivendor\records\Email;
 use batchnz\craftcommercemultivendor\records\Order;
+use batchnz\craftcommercemultivendor\records\OrderStatusEmail;
+use batchnz\craftcommercemultivendor\records\PlatformSettings;
 use batchnz\craftcommercemultivendor\records\Transaction;
 use batchnz\craftcommercemultivendor\records\Vendor;
 use batchnz\craftcommercemultivendor\records\VendorType;
@@ -14,7 +17,6 @@ use batchnz\craftcommercemultivendor\records\VendorTypeSite;
 use batchnz\craftcommercemultivendor\records\VendorTypeShippingCategory;
 use batchnz\craftcommercemultivendor\records\VendorTypeTaxCategory;
 use batchnz\craftcommercemultivendor\records\VendorAddress;
-use batchnz\craftcommercemultivendor\records\PlatformSettings;
 
 /**
  * Install migration.
@@ -179,6 +181,39 @@ class Install extends Migration
                     'uid' => $this->uid(),
                 ]);
             }
+
+            $vendorEmailsTableSchema = Craft::$app->db->schema->getTableSchema(Email::tableName());
+            if( $vendorEmailsTableSchema === null ) {
+                $this->createTable(Email::tableName(), [
+                    'id' => $this->primaryKey(),
+                    'name' => $this->string()->notNull(),
+                    'subject' => $this->string()->notNull(),
+                    'recipientType' => $this->enum('recipientType', ['vendors', 'custom'])->defaultValue('custom'),
+                    'to' => $this->string(),
+                    'bcc' => $this->string(),
+                    'cc' => $this->string(),
+                    'replyTo' => $this->string(),
+                    'enabled' => $this->boolean(),
+                    'attachPdf' => $this->boolean(),
+                    'templatePath' => $this->string()->notNull(),
+                    'pdfTemplatePath' => $this->string()->notNull(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                ]);
+            }
+
+            $vendorOrderStatusEmailsTableSchema = Craft::$app->db->schema->getTableSchema(OrderStatusEmail::tableName());
+            if( $vendorOrderStatusEmailsTableSchema === null ) {
+                $this->createTable(OrderStatusEmail::tableName(), [
+                    'id' => $this->primaryKey(),
+                    'orderStatusId' => $this->integer()->notNull(),
+                    'emailId' => $this->integer()->notNull(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                ]);
+            }
         }
 
         return true;
@@ -194,6 +229,8 @@ class Install extends Migration
         $this->createIndex(null, Order::tableName(), 'commerceOrderId', false);
         $this->createIndex(null, Order::tableName(), 'orderStatusId', false);
         $this->createIndex(null, Order::tableName(), 'vendorId', false);
+        $this->createIndex(null, OrderStatusEmail::tableName(), 'orderStatusId', false);
+        $this->createIndex(null, OrderStatusEmail::tableName(), 'emailId', false);
     }
 
     public function addForeignKeys()
@@ -205,6 +242,8 @@ class Install extends Migration
         $this->addForeignKey(null, Transaction::tableName(), ['vendorId'], Vendor::tableName(), ['id'], 'SET NULL');
         $this->addForeignKey(null, Order::tableName(), ['commerceOrderId'], Table::ORDERS, ['id'], 'CASCADE');
         $this->addForeignKey(null, Order::tableName(), ['vendorId'], Vendor::tableName(), ['id'], 'SET NULL');
+        $this->addForeignKey(null, OrderStatusEmail::tableName(), ['emailId'], Email::tableName(), ['id'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, OrderStatusEmail::tableName(), ['orderStatusId'], Table::ORDERSTATUSES, ['id'], 'RESTRICT', 'CASCADE');
     }
 
     /**
@@ -227,6 +266,10 @@ class Install extends Migration
             MigrationHelper::dropAllForeignKeysToTable(Order::tableName(), $this);
             MigrationHelper::dropAllForeignKeysOnTable(Order::tableName(), $this);
         }
+        if ($this->_tableExists(OrderStatusEmail::tableName())) {
+            MigrationHelper::dropAllForeignKeysToTable(OrderStatusEmail::tableName(), $this);
+            MigrationHelper::dropAllForeignKeysOnTable(OrderStatusEmail::tableName(), $this);
+        }
     }
 
     public function dropTables()
@@ -240,6 +283,8 @@ class Install extends Migration
         $this->dropTableIfExists(Vendor::tableName());
         $this->dropTableIfExists(VendorAddress::tableName());
         $this->dropTableIfExists(PlatformSettings::tableName());
+        $this->dropTableIfExists(Email::tableName());
+        $this->dropTableIfExists(OrderStatusEmail::tableName());
     }
 
     /**

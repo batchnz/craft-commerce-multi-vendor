@@ -1,0 +1,145 @@
+{% extends "commerce/_layouts/cp" %}
+
+{% set crumbs = [
+    { label: "Commerce Multi Vendor Settings"|t('craft-commerce-multi-vendor'), url: url('craft-commerce-multi-vendor/settings') },
+    { label: "Emails"|t('craft-commerce-multi-vendor'), url: url('craft-commerce-multi-vendor/settings/emails') },
+] %}
+
+{% set selectedSubnavItem = 'settings' %}
+
+{% set fullPageForm = true %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    <input type="hidden" name="action" value="craft-commerce-multi-vendor/emails/save">
+    {{ redirectInput('commerce-multi-vendor/settings/emails') }}
+    {% if email.id %}<input type="hidden" name="emailId" value="{{ email.id }}">{% endif %}
+
+    {{ forms.textField({
+        first: true,
+        label: "Name"|t('craft-commerce-multi-vendor'),
+        instructions: "What this email will be called in the CP."|t('craft-commerce-multi-vendor'),
+        id: 'name',
+        name: 'name',
+        value: email.name,
+        errors: email.getErrors('name'),
+        autofocus: true,
+        required: true
+    }) }}
+
+    {{ forms.textField({
+        label: "Email Subject"|t('craft-commerce-multi-vendor'),
+        instructions: "The subject line of the email. Twig code can be used here."|t('craft-commerce-multi-vendor'),
+        id: 'subject',
+        name: 'subject',
+        value: email.subject,
+        errors: email.getErrors('subject'),
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: "Reply To"|t('craft-commerce-multi-vendor'),
+        instructions: "The reply to email address. Leave blank for normal reply to of email sender. Twig code can be used here."|t('craft-commerce-multi-vendor'),
+        id: 'replyTo',
+        name: 'replyTo',
+        value: email.replyTo,
+        errors: email.getErrors('replyTo')
+    }) }}
+
+    {% set recipientInput %}
+        <div class="flex">
+            <div>
+                {{ forms.select({
+                    id: 'recipient-type',
+                    name: 'recipientType',
+                    options: [
+                        { label: "Send to the vendors"|t('craft-commerce-multi-vendor'), value: 'vendors' },
+                        { label: "Send to custom recipient"|t('craft-commerce-multi-vendor'), value: 'custom' }
+                    ],
+                    value: email.recipientType,
+                    toggle: true,
+                    targetPrefix: 'to-option-'
+                }) }}
+            </div>
+            <div id="to-option-custom"
+                 class="flex-grow{% if email.recipientType != 'custom' %} hidden{% endif %}">
+                {{ forms.text({
+                    id: 'to',
+                    name: 'to',
+                    value: email.to,
+                    placeholder: 'jane@acme.com, joe@acme.com'
+                }) }}
+            </div>
+        </div>
+    {% endset %}
+
+    {{ forms.field({
+        id: 'recipient-type',
+        label: 'Recipient'|t('craft-commerce-multi-vendor'),
+        instructions: 'The recipient of the email.'|t('craft-commerce-multi-vendor'),
+        errors: email.getErrors('to'),
+        required: true,
+    }, recipientInput) }}
+
+    {{ forms.textField({
+        label: 'BCC’d Recipient'|t('craft-commerce-multi-vendor'),
+        instructions: 'Addition recipients that should recieve this email. Twig code can be used here.'|t('craft-commerce-multi-vendor'),
+        id: 'bcc',
+        name: 'bcc',
+        value: email.bcc,
+        errors: email.getErrors('bcc'),
+    }) }}
+
+    {{ forms.textField({
+        label: 'CC’d Recipient'|t('craft-commerce-multi-vendor'),
+        instructions: 'Addition recipients that should recieve this email. Twig code can be used here.'|t('craft-commerce-multi-vendor'),
+        id: 'cc',
+        name: 'cc',
+        value: email.cc,
+        errors: email.getErrors('cc'),
+    }) }}
+
+    {{ forms.textField({
+        label: 'HTML Email Template Path'|t('craft-commerce-multi-vendor'),
+        instructions: 'The template to be used for HTML emails. Twig code can be used here.'|t('craft-commerce-multi-vendor'),
+        id: 'templatePath',
+        name: 'templatePath',
+        value: email.templatePath,
+        errors: email.getErrors('templatePath'),
+        required: true,
+    }) }}
+
+    {{ forms.lightswitchField({
+        label: "Attach PDF"|t('craft-commerce-multi-vendor'),
+        instructions: 'This email should render the order PDF template and include it as an attachment.'|t('craft-commerce-multi-vendor'),
+        id: 'attach-pdf',
+        name: 'attachPdf',
+        value: 1,
+        on: email.attachPdf,
+        toggle: '#pdf-template-path-container'
+    }) }}
+
+    <div id="pdf-template-path-container"{% if not email.attachPdf %} class="hidden"{% endif %}>
+    {{ forms.textField({
+        label: 'PDF Template Path'|t('craft-commerce-multi-vendor'),
+        instructions: "By default the PDF template path is the 'Order PDF Template' in the general commerce config, but can choose a different template for this email's PDF."|t('craft-commerce-multi-vendor'),
+        placeholder: craft.commerce.settings.orderPdfPath,
+        id: 'pdf-template-path',
+        name: 'pdfTemplatePath',
+        value: email.pdfTemplatePath,
+        errors: email.getErrors('pdfTemplatePath'),
+        required: true,
+    }) }}
+    </div>
+
+    {{ forms.lightswitchField({
+        label: "Enabled?"|t('craft-commerce-multi-vendor'),
+        instructions: 'If disabled, this email will not send.'|t('craft-commerce-multi-vendor'),
+        id: 'enabled',
+        name: 'enabled',
+        value: 1,
+        on: email.enabled,
+        errors: email.getErrors('enabled')
+    }) }}
+{% endblock %}

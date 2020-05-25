@@ -12,7 +12,9 @@ use craft\elements\db\UserQuery;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 use craft\commerce\db\Table as CommerceTable;
+use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
+use craft\commerce\elements\db\OrderQuery;
 use craft\commerce\elements\db\ProductQuery;
 use DateTime;
 
@@ -39,6 +41,11 @@ class VendorQuery extends ElementQuery
      * @var UserQuery|array only return vendors that match the resulting user query.
      */
     public $hasUser;
+
+    /**
+     * @var OrderQuery|array only return vendors that match the resulting order query.
+     */
+    public $hasOrder;
 
     /**
      * @var  SubOrder|int The sub order the resulting vendors must have.
@@ -125,6 +132,12 @@ class VendorQuery extends ElementQuery
     public function hasUser($value)
     {
         $this->hasUser = $value;
+        return $this;
+    }
+
+    public function hasOrder($value)
+    {
+        $this->hasOrder = $value;
         return $this;
     }
 
@@ -269,6 +282,7 @@ class VendorQuery extends ElementQuery
 
         $this->_applyHasProductParam();
         $this->_applyHasUserParam();
+        $this->_applyHasOrderParam();
 
         return parent::beforePrepare();
     }
@@ -356,10 +370,31 @@ class VendorQuery extends ElementQuery
             $userQuery->select('relations.targetId')->innerJoin(Table::RELATIONS, Table::RELATIONS.'.[[targetId]] = '.Table::USERS.'.[[id]]');
             $userIds = $userQuery->asArray()->column();
 
-            // Remove any blank product IDs (if any)
+            // Remove any blank user IDs (if any)
             $userIds = array_filter($userIds);
             $this->subQuery->innerJoin(Table::RELATIONS, Table::RELATIONS.'.[[sourceId]] = {{%commerce_multivendor_vendors}}.[[id]]');
             $this->subQuery->andWhere(['IN', 'relations.targetId', array_values($userIds)]);
+        }
+    }
+
+    private function _applyHasOrderParam()
+    {
+        if ($this->hasOrder) {
+            if ($this->hasOrder instanceof OrderQuery) {
+                $orderQuery = $this->hasOrder;
+            } else {
+                $orderQuery = Order::find()
+                    ->id($this->hasOrder->id)
+                    ->status(null);
+            }
+
+            $orderQuery->limit = null;
+            $orderIds = $orderQuery->asArray()->column();
+
+            // Remove any blank order IDs (if any)
+            $orderIds = array_filter($orderIds);
+            $this->subQuery->innerJoin(SubOrderRecord::tableName() . ' vendor_suborders', '[[vendor_suborders.vendorId]] = {{%commerce_multivendor_vendors}}.[[id]]');
+            $this->subQuery->andWhere(['IN', 'vendor_suborders.commerceOrderId', array_values($orderIds)]);
         }
     }
 }

@@ -2,8 +2,10 @@
 
 namespace batchnz\craftcommercemultivendor\plugin;
 
+use batchnz\craftcommercemultivendor\services\Emails;
 use batchnz\craftcommercemultivendor\services\LineItems;
 use batchnz\craftcommercemultivendor\services\Orders;
+use batchnz\craftcommercemultivendor\services\OrderStatuses;
 use batchnz\craftcommercemultivendor\services\Payments;
 use batchnz\craftcommercemultivendor\services\Platform;
 use batchnz\craftcommercemultivendor\services\Products;
@@ -51,6 +53,16 @@ trait Services
     }
 
     /**
+     * Returns the emails service
+     * @author Josh Smith <josh@batch.nz>
+     * @return Emails The Emails service
+     */
+    public function getEmails(): Emails
+    {
+        return $this->get('emails');
+    }
+
+    /**
      * Returns the line items service
      * @author Josh Smith <josh@batch.nz>
      * @return LineItems The line items service
@@ -58,6 +70,16 @@ trait Services
     public function getLineItems(): LineItems
     {
         return $this->get('lineItems');
+    }
+
+    /**
+     * Returns the order statuses service
+     * @author Josh Smith <josh@batch.nz>
+     * @return OrderStatuses The order statuses service
+     */
+    public function getOrderStatuses(): OrderStatuses
+    {
+        return $this->get('orderStatuses');
     }
 
     /**
@@ -99,8 +121,10 @@ trait Services
     private function _setPluginComponents()
     {
         $this->setComponents([
+            'emails' => Emails::class,
             'lineItems' => LineItems::class,
             'orders' => Orders::class,
+            'orderStatuses' => OrderStatuses::class,
             'payments' => Payments::class,
             'platform' => Platform::class,
             'products' => Products::class,

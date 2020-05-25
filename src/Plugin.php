@@ -24,6 +24,8 @@ use batchnz\craftcommercemultivendor\services\Orders as OrdersService;
 use batchnz\craftcommercemultivendor\services\VendorTypes;
 use batchnz\craftcommercemultivendor\fields\Vendors;
 use batchnz\craftcommercemultivendor\models\Settings;
+use batchnz\craftcommercemultivendor\services\Emails as EmailsService;
+use batchnz\craftcommercemultivendor\services\OrderStatuses as OrderStatusesService;
 
 use Craft;
 use craft\base\Element;
@@ -47,15 +49,17 @@ use craft\events\RegisterTemplateRootsEvent;
 use craft\web\View;
 
 use craft\commerce\Plugin as CommercePlugin;
-use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
+use craft\commerce\elements\Order;
+use craft\commerce\events\OrderStatusEvent;
 use craft\commerce\events\ProcessPaymentEvent;
+use craft\commerce\models\Email as EmailModel;
+use craft\commerce\records\Email;
+use craft\commerce\services\OrderHistories;
 use craft\commerce\services\Payments;
 
 use yii\BaseYii;
 use yii\base\Event;
-
-
 
 /**
  * Craft Commerce Multi Vendor Plugin
@@ -99,7 +103,7 @@ class Plugin extends CraftPlugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.3';
+    public $schemaVersion = '1.0.4';
 
     /**
      * Plugin initialisation
@@ -269,8 +273,18 @@ class Plugin extends CraftPlugin
 
             'commerce-multi-vendor/downloads/purchase-orders' => self::PLUGIN_HANDLE.'/downloads/purchase-orders',
 
+            // General settings routes
             'commerce-multi-vendor/settings' => self::PLUGIN_HANDLE.'/settings',
             'commerce-multi-vendor/settings/general' => self::PLUGIN_HANDLE.'/settings/edit',
+
+            // Email settings routes
+            'commerce-multi-vendor/settings/emails' => self::PLUGIN_HANDLE.'/emails/index',
+            'commerce-multi-vendor/settings/emails/new' =>  self::PLUGIN_HANDLE.'/emails/edit',
+            'commerce-multi-vendor/settings/emails/<id:\d+>' =>  self::PLUGIN_HANDLE.'/emails/edit',
+
+            // Order statuses routes
+            'commerce-multi-vendor/settings/orderstatuses' => self::PLUGIN_HANDLE.'/order-statuses/index',
+            'commerce-multi-vendor/settings/orderstatuses/<id:\d+>' =>  self::PLUGIN_HANDLE.'/order-statuses/edit',
 
             // Vendor routes
             'commerce/vendors' => self::PLUGIN_HANDLE.'/vendors/vendor-index',
@@ -299,6 +313,11 @@ class Plugin extends CraftPlugin
         Event::on(Plugins::class, Plugins::EVENT_AFTER_LOAD_PLUGINS, function(Event $event){
             $this->_registerRoutes();
             $this->_extendRoutes();
+
+            // $order = Order::find()->id(46823)->one();
+            // $orderHistory = CommercePlugin::getInstance()->getOrderHistories()->getOrderHistoryById(32);
+            // $email = CommercePlugin::getInstance()->getEmails()->getEmailById(8);
+            // CommercePlugin::getInstance()->getEmails()->sendEmail($email, $order, $orderHistory);
         });
     }
 
@@ -326,6 +345,17 @@ class Plugin extends CraftPlugin
             ->onUpdate(OrdersService::CONFIG_FIELDLAYOUT_KEY, [$ordersService, 'handleChangedFieldLayout'])
             ->onRemove(OrdersService::CONFIG_FIELDLAYOUT_KEY, [$ordersService, 'handleDeletedFieldLayout']);
         Event::on(Fields::class, Fields::EVENT_AFTER_DELETE_FIELD, [$ordersService, 'pruneDeletedField']);
+
+        $orderStatusService = $this->getOrderStatuses();
+        $projectConfigService->onAdd(OrderStatusesService::CONFIG_STATUSES_KEY . '.{uid}', [$orderStatusService, 'handleChangedOrderStatus'])
+            ->onUpdate(OrderStatusesService::CONFIG_STATUSES_KEY . '.{uid}', [$orderStatusService, 'handleChangedOrderStatus'])
+            ->onRemove(OrderStatusesService::CONFIG_STATUSES_KEY . '.{uid}', [$orderStatusService, 'handleDeletedOrderStatus']);
+        Event::on(EmailsService::class, EmailsService::EVENT_AFTER_DELETE_EMAIL, [$orderStatusService, 'pruneDeletedEmail']);
+
+        $emailService = $this->getEmails();
+        $projectConfigService->onAdd(EmailsService::CONFIG_EMAILS_KEY . '.{uid}', [$emailService, 'handleChangedEmail'])
+            ->onUpdate(EmailsService::CONFIG_EMAILS_KEY . '.{uid}', [$emailService, 'handleChangedEmail'])
+            ->onRemove(EmailsService::CONFIG_EMAILS_KEY . '.{uid}', [$emailService, 'handleDeletedEmail']);
     }
 
     private function _registerEventHandlers()
@@ -335,10 +365,17 @@ class Plugin extends CraftPlugin
         });
 
         /**
-         * We use ths event to route funds between the vendor accounts
+         * We use this event to route funds between the vendor accounts
          */
         Event::on(Payments::class, Payments::EVENT_AFTER_PROCESS_PAYMENT, function(ProcessPaymentEvent $e) {
             $this->getPayments()->handleAfterProcessPaymentEvent($e);
+        });
+
+        /**
+         * Handle the sending of vendor emails linked to order statuses
+         */
+        Event::on(OrderHistories::class, OrderHistories::EVENT_ORDER_STATUS_CHANGE, function(OrderStatusEvent $e) {
+            $this->getOrderStatuses()->handleOrderStatusChangeEvent($e);
         });
     }
 
