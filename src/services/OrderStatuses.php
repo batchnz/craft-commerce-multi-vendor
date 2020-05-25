@@ -201,7 +201,7 @@ class OrderStatuses extends CommerceOrderStatusesService
      */
     private function _createOrderStatusesQuery($withTrashed = false): Query
     {
-        $query = (new Query())
+        return (new Query())
             ->select([
                 'id',
                 'name',
