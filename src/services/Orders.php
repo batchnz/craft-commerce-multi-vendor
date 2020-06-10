@@ -24,6 +24,8 @@ use craft\models\FieldLayout;
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Order as CommerceOrder;
 
+use yii\base\Event;
+
 /**
  * Orders Service
  *
@@ -43,6 +45,18 @@ class Orders extends Component
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * Handles an order completion event
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Event $e
+     * @return void
+     */
+    public function handleBeforeCompleteOrderEvent(Event $e)
+    {
+        // Create order split for each vendor
+        $this->createSubOrders($e->sender);
+    }
 
     /**
      * Handle field layout change
@@ -144,6 +158,7 @@ class Orders extends Component
     {
         $subOrder = $this->buildSubOrder($order, $vendor, $defaultOrderStatus);
         Craft::$app->getElements()->saveElement($subOrder);
+        error_log('EMAIL-DEBUG: Created Sub Order for OrderId ' . $order->id, 0);
         return $subOrder;
     }
 

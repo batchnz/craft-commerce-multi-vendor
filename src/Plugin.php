@@ -61,6 +61,8 @@ use craft\commerce\services\Payments;
 use yii\BaseYii;
 use yii\base\Event;
 
+// use craft\commerce\records\OrderHistory;
+
 /**
  * Craft Commerce Multi Vendor Plugin
  *
@@ -314,10 +316,11 @@ class Plugin extends CraftPlugin
             $this->_registerRoutes();
             $this->_extendRoutes();
 
-            // $order = Order::find()->id(46823)->one();
-            // $orderHistory = CommercePlugin::getInstance()->getOrderHistories()->getOrderHistoryById(32);
-            // $email = CommercePlugin::getInstance()->getEmails()->getEmailById(8);
-            // CommercePlugin::getInstance()->getEmails()->sendEmail($email, $order, $orderHistory);
+            // if( Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->getRequest()->getParam('sendEmail') === '1' ){
+            //     $orderHistory = OrderHistory::find()->where(['id' => 33])->one();
+            //     $order = Order::find()->id(51241)->one();
+            //     self::getOrderStatuses()->statusChangeHandler($order, $orderHistory);
+            // }
         });
     }
 
@@ -367,14 +370,16 @@ class Plugin extends CraftPlugin
         /**
          * We use this event to route funds between the vendor accounts
          */
-        Event::on(Payments::class, Payments::EVENT_AFTER_PROCESS_PAYMENT, function(ProcessPaymentEvent $e) {
-            $this->getPayments()->handleAfterProcessPaymentEvent($e);
+        Event::on(Order::class, Order::EVENT_BEFORE_COMPLETE_ORDER, function(Event $e) {
+            error_log('EMAIL-DEBUG: Payments::EVENT_BEFORE_COMPLETE_ORDER.', 0);
+            $this->getOrders()->handleBeforeCompleteOrderEvent($e);
         });
 
         /**
          * Handle the sending of vendor emails linked to order statuses
          */
         Event::on(OrderHistories::class, OrderHistories::EVENT_ORDER_STATUS_CHANGE, function(OrderStatusEvent $e) {
+            error_log('EMAIL-DEBUG: OrderHistories::EVENT_ORDER_STATUS_CHANGE.', 0);
             $this->getOrderStatuses()->handleOrderStatusChangeEvent($e);
         });
     }

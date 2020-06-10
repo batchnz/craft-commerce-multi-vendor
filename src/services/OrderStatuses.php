@@ -12,6 +12,7 @@ namespace batchnz\craftcommercemultivendor\services;
 
 use batchnz\craftcommercemultivendor\Plugin;
 use batchnz\craftcommercemultivendor\models\OrderStatus;
+use batchnz\craftcommercemultivendor\elements\Order;
 use batchnz\craftcommercemultivendor\records\Email;
 use batchnz\craftcommercemultivendor\records\OrderStatusEmail;
 
@@ -171,12 +172,25 @@ class OrderStatuses extends CommerceOrderStatusesService
      */
     public function statusChangeHandler($order, $orderHistory)
     {
-        if ($order->orderStatusId) {
-            $status = $this->getOrderStatusById($order->orderStatusId);
-            if ($status && count($status->emails)) {
-                foreach ($status->emails as $email) {
-                    Plugin::getInstance()->getEmails()->sendEmail($email, $order, $orderHistory);
-                }
+        error_log('EMAIL-DEBUG: Order status change handler.', 0);
+        if( !$order->orderStatusId ) return;
+
+        $status = $this->getOrderStatusById($order->orderStatusId);
+error_log('EMAIL-DEBUG: Status is: ' . json_encode($status), 0);
+error_log('EMAIL-DEBUG: Number of emails are: ' . count($status->emails), 0);
+        if (!$status || count($status->emails) === 0) return;
+error_log('EMAIL-DEBUG: Order is' . json_encode($order), 0);
+        // Loop and process status emails
+        foreach ($status->emails as $email) {
+            // Fetch vendor suborders
+            $subOrders = Order::find()->commerceOrderId($order->id)->all();
+error_log('EMAIL-DEBUG: Number of sub-orders are: '. count($subOrders), 0);
+            if( empty($subOrders) ) return;
+
+            // Fire off an email for each suborder
+            foreach ($subOrders as $subOrder) {
+                error_log('EMAIL-DEBUG: Processing email for sub order ID ' . $subOrder->id, 0);
+                Plugin::getInstance()->getEmails()->sendEmail($email, $subOrder, $orderHistory);
             }
         }
     }
@@ -190,6 +204,7 @@ class OrderStatuses extends CommerceOrderStatusesService
      */
     public function handleOrderStatusChangeEvent(OrderStatusEvent $e)
     {
+        error_log('EMAIL-DEBUG: Processing order status change event.', 0);
         $this->statusChangeHandler($e->order, $e->orderHistory);
     }
 

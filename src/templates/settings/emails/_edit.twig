@@ -1,8 +1,8 @@
 {% extends "commerce/_layouts/cp" %}
 
 {% set crumbs = [
-    { label: "Commerce Multi Vendor Settings"|t('craft-commerce-multi-vendor'), url: url('craft-commerce-multi-vendor/settings') },
-    { label: "Emails"|t('craft-commerce-multi-vendor'), url: url('craft-commerce-multi-vendor/settings/emails') },
+    { label: "Commerce Multi Vendor Settings"|t('craft-commerce-multi-vendor'), url: url('commerce-multi-vendor/settings') },
+    { label: "Emails"|t('craft-commerce-multi-vendor'), url: url('commerce-multi-vendor/settings/emails') },
 ] %}
 
 {% set selectedSubnavItem = 'settings' %}
@@ -54,7 +54,7 @@
                     id: 'recipient-type',
                     name: 'recipientType',
                     options: [
-                        { label: "Send to the vendors"|t('craft-commerce-multi-vendor'), value: 'vendors' },
+                        { label: "Send to the vendor"|t('craft-commerce-multi-vendor'), value: 'vendors' },
                         { label: "Send to custom recipient"|t('craft-commerce-multi-vendor'), value: 'custom' }
                     ],
                     value: email.recipientType,
@@ -123,7 +123,7 @@
     <div id="pdf-template-path-container"{% if not email.attachPdf %} class="hidden"{% endif %}>
     {{ forms.textField({
         label: 'PDF Template Path'|t('craft-commerce-multi-vendor'),
-        instructions: "By default the PDF template path is the 'Order PDF Template' in the general commerce config, but can choose a different template for this email's PDF."|t('craft-commerce-multi-vendor'),
+        instructions: "By default the PDF template path is the 'Purchase Order PDF Template' in the general commerce config, but can choose a different template for this email's PDF."|t('craft-commerce-multi-vendor'),
         placeholder: craft.commerce.settings.orderPdfPath,
         id: 'pdf-template-path',
         name: 'pdfTemplatePath',

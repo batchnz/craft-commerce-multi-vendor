@@ -48,6 +48,16 @@ class Settings extends Model
     // Public Methods
     // =========================================================================
 
+    public function getPdfPath()
+    {
+        return $this->purchaseOrderPdfPath;
+    }
+
+    public function getPdfFilenameFormat()
+    {
+        return $this->purchaseOrderPdfFilenameFormat;
+    }
+
     /**
      * @inheritdoc
      */
