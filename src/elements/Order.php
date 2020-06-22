@@ -142,15 +142,30 @@ class Order extends CommerceOrder
     }
 
     /**
-     * Returns the original product price without any adjustments
+     * Returns the original product price with adjustments
      * @author Josh Smith <josh@batch.nz>
      * @return float
      */
     public function getVendorTotal()
     {
         $total = 0;
-        foreach ($this->getLineItems() as $item) {
-            $total += ($item->snapshot['price'] * $item->qty);
+        foreach ($this->getLineItems() as $lineItem) {
+            $total += (($lineItem->snapshot['price'] * $lineItem->qty) + $lineItem->getAdjustmentsTotal());
+        }
+
+        return Currency::round($total);
+    }
+
+    /**
+     * Returns the original product price without any adjustments
+     * @author Josh Smith <josh@batch.nz>
+     * @return float
+     */
+    public function getVendorSubTotal()
+    {
+        $total = 0;
+        foreach ($this->getLineItems() as $lineItem) {
+            $total += ($lineItem->snapshot['price'] * $lineItem->qty);
         }
 
         return Currency::round($total);
