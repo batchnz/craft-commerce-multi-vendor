@@ -112,7 +112,7 @@
                         <td></td>
                         <td><strong>{{ "Items Total (with adjustments)"|t('commerce') }}</strong></td>
                         <td>
-                            <span class="right">{{ (subOrder.vendorTotal + subOrder.adjustmentsTotal)|currency(subOrder.currency) }}</span>
+                            <span class="right">{{ subOrder.vendorTotal|currency(subOrder.currency) }}</span>
                         </td>
                         <td></td>
                     </tr>
@@ -145,7 +145,7 @@
                         <td></td>
                         <td><h2>{{ "Total Price"|t('commerce') }}</h2></td>
                         <td>
-                            <h2 class="right">{{ (subOrder.vendorTotal + subOrder.adjustmentsTotal)|currency(subOrder.currency) }}</h2>
+                            <h2 class="right">{{ subOrder.vendorTotal|currency(subOrder.currency) }}</h2>
                         </td>
                         <td></td>
                     </tr>
@@ -161,7 +161,7 @@
                             {% if subOrder.isCompleted %}
                                 <span class="commerceStatusLabel"><span class="status green"></span> Order Completed</span>
                             {% else %}
-                                <button class="btn submit">Transfer {{ (subOrder.vendorTotal + subOrder.adjustmentsTotal)|currency(subOrder.currency) }}</button>
+                                <button class="btn submit">Transfer {{ subOrder.vendorTotal|currency(subOrder.currency) }}</button>
                             {% endif %}
                         </form>
                     {% else %}
