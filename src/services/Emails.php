@@ -121,7 +121,6 @@ class Emails extends CommerceEmails {
      */
     public function sendEmail($email, $order, $orderHistory): bool
     {
-        error_log('EMAIL-DEBUG: Init send email.', 0);
         if (!$email->enabled) {
             return false;
         }
@@ -199,7 +198,6 @@ class Emails extends CommerceEmails {
         }
 
         if (!$newEmail->getTo()) {
-            error_log('EMAIL-DEBUG: Failed as there is no to address.', 0);
             $error = Plugin::t('Email error. No email address found for order. Order: “{order}”', ['order' => $order->getShortNumber()]);
             Craft::error($error, __METHOD__);
 
@@ -288,7 +286,6 @@ class Emails extends CommerceEmails {
         try {
             $newEmail->setSubject($view->renderString($email->subject, $renderVariables));
         } catch (\Exception $e) {
-            error_log('EMAIL-DEBUG: Failed on parsing email template.', 0);
             $error = Plugin::t('Email template parse error for email “{email}” in “Subject:”. Order: “{order}”. Template error: “{message}” {file}:{line}', [
                 'email' => $email->name,
                 'order' => $order->getShortNumber(),
@@ -308,7 +305,6 @@ class Emails extends CommerceEmails {
         try {
             $templatePath = $view->renderString($email->templatePath, $renderVariables);
         } catch (\Exception $e) {
-            error_log('EMAIL-DEBUG: Failed on parsing email template path.', 0);
             $error = Plugin::t('Email template path parse error for email “{email}” in “Template Path”. Order: “{order}”. Template error: “{message}” {file}:{line}', [
                 'email' => $email->name,
                 'order' => $order->getShortNumber(),
@@ -326,7 +322,6 @@ class Emails extends CommerceEmails {
 
         // Email Body
         if (!$view->doesTemplateExist($templatePath)) {
-            error_log('EMAIL-DEBUG: Template does not exist.', 0);
             $error = Plugin::t('Email template does not exist at “{templatePath}” which resulted in “{templateParsedPath}” for email “{email}”. Order: “{order}”.', [
                 'templatePath' => $email->templatePath,
                 'templateParsedPath' => $templatePath,
@@ -344,7 +339,6 @@ class Emails extends CommerceEmails {
         if ($email->attachPdf && $path = $email->pdfTemplatePath ?: Plugin::getInstance()->getSettings()->getPdfPath()) {
             // Email Body
             if (!$view->doesTemplateExist($path)) {
-                error_log('EMAIL-DEBUG: Email PDF template does not exist.', 0);
                 $error = Plugin::t('Email PDF template does not exist at “{templatePath}” for email “{email}”. Order: “{order}”.', [
                     'templatePath' => $path,
                     'email' => $email->name,
@@ -376,7 +370,6 @@ class Emails extends CommerceEmails {
                 $options = ['fileName' => $fileName . '.pdf', 'contentType' => 'application/pdf'];
                 $newEmail->attach($tempPath, $options);
             } catch (\Exception $e) {
-                error_log('EMAIL-DEBUG: Email PDF generation failed.', 0);
                 $error = Plugin::t('Email PDF generation error for email “{email}”. Order: “{order}”. PDF Template error: “{message}” {file}:{line}', [
                     'email' => $email->name,
                     'order' => $order->getShortNumber(),
@@ -397,7 +390,6 @@ class Emails extends CommerceEmails {
             $body = $view->renderTemplate($templatePath, $renderVariables);
             $newEmail->setHtmlBody($body);
         } catch (\Exception $e) {
-            error_log('EMAIL-DEBUG: Email template parse error.', 0);
             $error = Plugin::t('Email template parse error for email “{email}”. Order: “{order}”. Template error: “{message}” {file}:{line}', [
                 'email' => $email->name,
                 'order' => $order->getShortNumber(),
@@ -451,7 +443,6 @@ class Emails extends CommerceEmails {
                 return false;
             }
         } catch (\Exception $e) {
-            error_log('EMAIL-DEBUG: Email could not be sent.', 0);
             $error = Plugin::t('Email “{email}” could not be sent for order “{order}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),

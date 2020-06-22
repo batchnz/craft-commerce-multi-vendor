@@ -371,7 +371,6 @@ class Plugin extends CraftPlugin
          * We use this event to route funds between the vendor accounts
          */
         Event::on(Order::class, Order::EVENT_BEFORE_COMPLETE_ORDER, function(Event $e) {
-            error_log('EMAIL-DEBUG: Payments::EVENT_BEFORE_COMPLETE_ORDER.', 0);
             $this->getOrders()->handleBeforeCompleteOrderEvent($e);
         });
 
@@ -379,7 +378,6 @@ class Plugin extends CraftPlugin
          * Handle the sending of vendor emails linked to order statuses
          */
         Event::on(OrderHistories::class, OrderHistories::EVENT_ORDER_STATUS_CHANGE, function(OrderStatusEvent $e) {
-            error_log('EMAIL-DEBUG: OrderHistories::EVENT_ORDER_STATUS_CHANGE.', 0);
             $this->getOrderStatuses()->handleOrderStatusChangeEvent($e);
         });
     }

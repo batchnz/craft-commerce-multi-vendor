@@ -158,7 +158,6 @@ class Orders extends Component
     {
         $subOrder = $this->buildSubOrder($order, $vendor, $defaultOrderStatus);
         Craft::$app->getElements()->saveElement($subOrder);
-        error_log('EMAIL-DEBUG: Created Sub Order for OrderId ' . $order->id, 0);
         return $subOrder;
     }
 
