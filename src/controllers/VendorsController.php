@@ -8,6 +8,7 @@ use batchnz\craftcommercemultivendor\elements\Vendor;
 
 use Craft;
 use craft\base\Element;
+use craft\elements\User;
 use craft\errors\ElementNotFoundException;
 use craft\errors\MissingComponentException;
 use craft\helpers\ArrayHelper;
@@ -235,13 +236,10 @@ class VendorsController extends BaseVendorController
     {
         $user = Craft::$app->getUser();
         $identity = $user->getIdentity();
-        $isNew = !$vendor->id;
+        $vendorUser = $vendor->getUser();
 
         // Ensure the vendor is associated with the logged in user
-        $vendorBelongsToUser = $isNew ?
-            in_array($identity->id, $vendor->user->id) :
-            $vendor->hasUser($identity);
-
+        $vendorBelongsToUser = $vendorUser instanceof User && ($vendorUser->id === $identity->id);
         $canAccess = $vendor->getIsEditable() && $vendorBelongsToUser;
 
         try {

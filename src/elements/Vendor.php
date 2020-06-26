@@ -20,6 +20,7 @@ use craft\base\Element;
 use craft\elements\User;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\elements\db\UserQuery;
 use craft\helpers\UrlHelper;
 use craft\helpers\DateTimeHelper;
 use craft\validators\DateTimeValidator;
@@ -289,6 +290,16 @@ class Vendor extends Element
     // =========================================================================
 
     /**
+     * Returns whether this element is new or not
+     * @author Josh Smith <josh@batch.nz>
+     * @return boolean
+     */
+    public function isNew()
+    {
+        return empty($this->id);
+    }
+
+    /**
      * Returns whether the passed product belongs to this vendor
      * @author Josh Smith <josh@batch.nz>
      * @param  Product $product Product Element
@@ -325,7 +336,16 @@ class Vendor extends Element
      */
     public function getUser()
     {
-        return User::find()->relatedTo([$this->id])->one();
+        if( !$this->isNew() ){
+            return User::find()->relatedTo([$this->id])->one();
+        }
+
+        // Pluck the user out of the content fields
+        $user = $this->getFieldValue('user');
+
+        if( $user instanceof UserQuery ){
+            return $user->one();
+        }
     }
 
     /**
