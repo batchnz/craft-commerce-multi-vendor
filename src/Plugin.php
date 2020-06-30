@@ -380,6 +380,13 @@ class Plugin extends CraftPlugin
         });
 
         /**
+         * We use this event to set the completion reference on sub orders
+         */
+        Event::on(SubOrder::class, SubOrder::EVENT_BEFORE_COMPLETE_ORDER, function(Event $e) {
+            $this->getOrders()->handleBeforeCompleteSubOrderEvent($e);
+        });
+
+        /**
          * Handle the sending of vendor emails linked to order statuses
          */
         Event::on(OrderHistories::class, OrderHistories::EVENT_ORDER_STATUS_CHANGE, function(OrderStatusEvent $e) {

@@ -39,10 +39,16 @@ class VendorOrdersController extends BaseVendorController
 
         $request = Craft::$app->getRequest();
         $order = $this->_setOrderFromPost();
+        $prevOrder = null;
 
         $this->enforceOrderPermissions($order);
 
         $order->setScenario(Element::SCENARIO_LIVE);
+
+        // Load the existing order if applicable
+        if( !empty($order->id) ){
+            $prevOrder = Plugin::getInstance()->getOrders()->getOrderById($order->id);
+        }
 
         if (!Craft::$app->getElements()->saveElement($order)) {
             Craft::$app->getSession()->setError(Craft::t('craft-commerce-multi-vendor', 'Couldn’t save order.'));
@@ -56,7 +62,8 @@ class VendorOrdersController extends BaseVendorController
 
             // Fire a 'modifyOrderInfo' event
             $event = new ModifyOrderInfoEvent([
-                'order' => $order,
+                'prevOrder' => $prevOrder,
+                'newOrder' => $order,
                 'orderInfo' => $order->toArray(),
             ]);
             $this->trigger(self::EVENT_MODIFY_ORDER_INFO, $event);

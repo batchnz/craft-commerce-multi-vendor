@@ -10,7 +10,7 @@
 
 namespace batchnz\craftcommercemultivendor\services;
 
-use batchnz\craftcommercemultivendor\Plugin as CommerceMultiVendor;
+use batchnz\craftcommercemultivendor\Plugin;
 use batchnz\craftcommercemultivendor\elements\Order as SubOrder;
 use batchnz\craftcommercemultivendor\elements\Vendor;
 
@@ -36,7 +36,7 @@ use yii\base\Event;
  * https://craftcms.com/docs/plugins/services
  *
  * @author    Josh Smith
- * @package   CraftCommerceMultiVendor
+ * @package   CraftPlugin
  * @since     1.0.0
  */
 class Orders extends Component
@@ -56,6 +56,22 @@ class Orders extends Component
     {
         // Create order split for each vendor
         $this->createSubOrders($e->sender);
+    }
+
+    /**
+     * Handles a sub order completion event
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Event $e
+     * @return void
+     */
+    public function handleBeforeCompleteSubOrderEvent(Event $e)
+    {
+        // Fetch the original order record
+        $order = $this->getOrderById($e->sender->id);
+
+        // The markAsComplete method overwrites this property
+        // Sub orders have a pre-generated reference so we need to reset it to the pre-overwritten state.
+        $e->sender->reference = $order->reference;
     }
 
     /**
@@ -132,7 +148,7 @@ class Orders extends Component
         $orderSplits = [];
 
         // Get vendors from the commerce order record
-        $vendors = CommerceMultiVendor::getInstance()->getVendors()->getVendorsByCommerceOrderId($order->id);
+        $vendors = Plugin::getInstance()->getVendors()->getVendorsByCommerceOrderId($order->id);
         if( empty($vendors) ) return [];
 
         // Get the default order status
@@ -175,7 +191,7 @@ class Orders extends Component
             'commerceOrderId' => $order->id,
             'vendorId' => $vendor->id,
             'orderStatusId' => $defaultOrderStatus ? $defaultOrderStatus->id : null,
-            'isCompleted' => 1,
+            'isCompleted' => 0,
             'number' => Commerce::getInstance()->getCarts()->generateCartNumber()
         ]);
 
@@ -193,7 +209,7 @@ class Orders extends Component
     public function generateReference(SubOrder $order)
     {
         $reference = '';
-        $referenceTemplate = CommerceMultiVendor::getInstance()->getSettings()->orderReferenceFormat;
+        $referenceTemplate = Plugin::getInstance()->getSettings()->orderReferenceFormat;
 
         try {
             $reference = Craft::$app->getView()->renderObjectTemplate($referenceTemplate, $order);

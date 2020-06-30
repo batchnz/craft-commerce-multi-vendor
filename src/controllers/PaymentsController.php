@@ -26,6 +26,17 @@ class PaymentsController extends BaseAdminController
     // =========================================================================
 
     /**
+     * Overrides the parent requireAdmin method to allow administrative changes on production mode
+     * @author Josh Smith <josh@batch.nz>
+     * @param  bool|boolean $requireAdminChanges
+     * @return void
+     */
+    public function requireAdmin(bool $requireAdminChanges = true)
+    {
+        return parent::requireAdmin(false);
+    }
+
+    /**
      * Transfer funds to a vendor for a particular order
      * @author Josh Smith <josh@batch.nz>
      * @return void

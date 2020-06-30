@@ -51,6 +51,26 @@ class Emails extends CommerceEmails {
     }
 
     /**
+     * Returns emails by their template path
+     * @author Josh Smith <josh@batch.nz>
+     * @param  string $templatePath
+     * @return array
+     */
+    public function getEmailsByTemplatePath($templatePath)
+    {
+        $results = $this->_createEmailQuery()
+            ->where(['templatePath' => $templatePath])
+            ->all();
+
+        $emails = [];
+        foreach ($results as $result) {
+            $emails[] = new Email($result);
+        }
+
+        return $emails;
+    }
+
+    /**
      * @inheritdoc
      */
     public function getAllEmails(): array
@@ -130,6 +150,7 @@ class Emails extends CommerceEmails {
         $oldTemplateMode = $view->getTemplateMode();
         $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
         $option = 'email';
+        $vendor = $order->getVendor();
 
         // Make sure date vars are in the correct format
         $dateFields = ['dateOrdered', 'datePaid'];
@@ -140,7 +161,7 @@ class Emails extends CommerceEmails {
         }
 
         //sending emails
-        $renderVariables = compact('order', 'orderHistory', 'option');
+        $renderVariables = compact('order', 'orderHistory', 'option', 'vendor');
 
         $mailer = Craft::$app->getMailer();
         /** @var Message $newEmail */

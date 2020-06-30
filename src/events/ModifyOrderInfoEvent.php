@@ -13,9 +13,14 @@ class ModifyOrderInfoEvent extends Event
     // =========================================================================
 
     /**
-     * @var array The order
+     * @var Order The new order
      */
-    public $order;
+    public $newOrder;
+
+    /**
+     * @var Order The previous order before modification
+     */
+    public $prevOrder;
 
     /**
      * @var array The order as an array

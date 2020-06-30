@@ -251,7 +251,6 @@ class Order extends CommerceOrder
         // Map commerce order properties onto this object
         $this->couponCode = $order->couponCode;
         $this->dateOrdered = $order->dateOrdered;
-        $this->datePaid = $order->datePaid;
         $this->currency = $order->currency;
         $this->gatewayId = empty($gateway) ? null : $gateway->id;
         $this->lastIp = $order->lastIp;
