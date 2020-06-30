@@ -9,3 +9,13 @@
  * @package   CraftCommerceMultiVendor
  * @since     1.0.0
  */
+$('.js--vendor-order').on('submit', function(e) {
+    var $transferBtn = $('.js--transfer');
+    var vendorName = $transferBtn.data('vendor');
+    var amount = $transferBtn.data('amount');
+
+    if( !confirm('Please confirm you want to transfer ' + amount + ' to ' + vendorName + '.') ){
+        e.preventDefault();
+        return;
+    }
+});

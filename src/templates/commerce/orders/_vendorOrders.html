@@ -153,15 +153,16 @@
                 </table>
                 <div style="margin-top: 24px; text-align: right;">
                     {% if subOrder.invoice is defined and subOrder.invoice | length %}
-                        <form method="post" accept-charset="UTF-8">
+                        <form class="js--vendor-order" method="post" accept-charset="UTF-8">
                             {{ csrfInput() }}
                             {{ hiddenInput('orderId', subOrder.id) }}
-                            {{ actionInput('craft-commerce-multi-vendor/vendor-orders/save-order') }}
+                            {{ hiddenInput('vendorId', vendor.id) }}
+                            {{ actionInput('craft-commerce-multi-vendor/payments/transfer') }}
                             <a style="margin-right: 10px;" target="_blank" class="btn" href="{{ subOrder.invoice.one().url ?? '#' }}">View Invoice</a>
-                            {% if subOrder.isCompleted %}
+                            {% if subOrder.isPaid %}
                                 <span class="commerceStatusLabel"><span class="status green"></span> Order Completed</span>
                             {% else %}
-                                <button class="btn submit">Transfer {{ subOrder.vendorTotal|currency(subOrder.currency) }}</button>
+                                <button data-amount="{{ subOrder.vendorTotal|currency(subOrder.currency) }}" data-vendor="{{ vendor.name }}" class="js--transfer btn submit">Transfer {{ subOrder.vendorTotal|currency(subOrder.currency) }}</button>
                             {% endif %}
                         </form>
                     {% else %}

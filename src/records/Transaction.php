@@ -20,6 +20,14 @@ use yii\db\ActiveQueryInterface;
  */
 class Transaction extends CommerceTransaction
 {
+    // Constants
+    // =========================================================================
+
+    const TYPE_TRANSFER = 'transfer';
+
+    // Public Methods
+    // =========================================================================
+
      /**
      * Declares the name of the database table associated with this AR class.
      * @return string the table name
@@ -48,19 +56,9 @@ class Transaction extends CommerceTransaction
     /**
      * @return ActiveQueryInterface
      */
-    public function getUser(): ActiveQueryInterface
-    {
-        return $this->hasOne(User::class, ['id' => 'userId'])
-            ->viaTable(CommerceTransaction::class, ['id' => 'commerceTransactionId']);
-    }
-
-    /**
-     * @return ActiveQueryInterface
-     */
     public function getOrder(): ActiveQueryInterface
     {
-        return $this->hasOne(Order::class, ['id' => 'orderId'])
-            ->viaTable(CommerceTransaction::class, ['id' => 'commerceTransactionId']);
+        return $this->hasOne(VendorOrder::class, ['id' => 'orderId']);
     }
 
     /**
@@ -68,6 +66,7 @@ class Transaction extends CommerceTransaction
      */
     public function getCommerceOrder(): ActiveQueryInterface
     {
-        return $this->hasOne(VendorOrder::class, ['id' => 'orderId']);
+        return $this->hasOne(CommerceOrder::class, ['id' => 'orderId'])
+            ->viaTable(VendorOrder::class, ['id' => 'commerceOrderId']);
     }
 }

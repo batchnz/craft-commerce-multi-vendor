@@ -1,5 +1,7 @@
 {% extends "basecommerce/orders/_edit" %}
 
+{% do view.registerAssetBundle("batchnz\\craftcommercemultivendor\\assetbundles\\craftcommercemultivendor\\CraftCommerceMultiVendorAsset") %}
+
 {% block content %}
     {{ parent() }}
     {% include 'commerce/orders/_vendorOrders' %}

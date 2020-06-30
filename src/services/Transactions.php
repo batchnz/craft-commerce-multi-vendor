@@ -11,10 +11,15 @@
 namespace batchnz\craftcommercemultivendor\services;
 
 use batchnz\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\models\Transaction;
+use batchnz\craftcommercemultivendor\records\Transaction as TransactionRecord;
 
 use Craft;
 use craft\base\Component;
-use craft\commerce\elements\Order;
+use craft\commerce\elements\Order as CommerceOrder;
+use craft\commerce\models\Transaction as CommerceTransaction;
+use craft\commerce\events\TransactionEvent;
+use craft\commerce\services\Transactions as CommerceTransactions;
 
 /**
  * Transactions Service
@@ -23,36 +28,110 @@ use craft\commerce\elements\Order;
  * @package   CraftCommerceMultiVendor
  * @since     1.0.0
  */
-class Transactions extends Component
+class Transactions extends CommerceTransactions
 {
-    // Public Methods
-    // =========================================================================
-
     /**
-     * Todo, when we can query multivendor orders this will be redundant
-     * as we'll loop through those directly and create a transaction for each.
+     * Creates a transaction from the passed order
      * @author Josh Smith <josh@batch.nz>
-     * @param  Order        $order          Order object
-     * @param  Transaction  $transaction    Transaction object
-     * @return array
+     * @param  CommerceOrder|null       $order             The order
+     * @param  CommerceTransaction|null $parentTransaction A parent transaction
+     * @param  string                   $typeOverride      An override type
+     * @return CommerceTransaction                         The created transaction
      */
-    public function createTransactionsFromOrder(Order $order, Transaction $transaction)
+    public function createTransaction(CommerceOrder $order = null, CommerceTransaction $parentTransaction = null, $typeOverride = null): CommerceTransaction
     {
-        $vendorsService = Plugin::$instance->getVendors();
-        $platformService = Plugin::$instance->getPlatform();
+        $commerceTransaction = parent::createTransaction($order, $parentTransaction, $typeOverride);
+        $transaction = new Transaction($commerceTransaction);
 
-        $vendorTotals = $vendorsService->getTotalsFromOrder($order);
+        $transaction->vendorId = $order->vendorId;
 
-        $transactions = [];
-        foreach ($vendorTotals as $vendorId => $total) {
-            $transactions[] = $this->createTransaction($order);
+        // Set the vendor amount on the transaction
+        // This is the amount the vendor will receive minus NZBEX fees, freight, FAF etc.
+        $transaction->amount = $order->getVendorTotal();
+
+        if( $commerceTransaction->orderId ){
+            $transaction->setOrder($commerceTransaction->getOrder());
         }
 
-        return $transactions;
+        if( $commerceTransaction->gatewayId ){
+            $transaction->setGateway($commerceTransaction->getGateway());
+        }
+
+        if( $commerceTransaction->id ){
+            $transaction->setChildTransactions($commerceTransaction->getChildTransactions());
+        }
+
+        if( $commerceTransaction->parentId ){
+            $transaction->setParent($commerceTransaction->getParent());
+        }
+
+        return $transaction;
     }
 
-    public function createTransaction(Order $order = null, Transaction $parentTransaction = null, $typeOverride = null): Transaction
+    /**
+     * Copied from parent to use different database table
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Transaction  $model
+     * @param  bool|boolean $runValidation
+     * @return boolean
+     */
+    public function saveTransaction(CommerceTransaction $model, bool $runValidation = true): bool
     {
+        if ($model->id) {
+            throw new TransactionException('Transactions cannot be modified.');
+        }
 
+        if ($runValidation && !$model->validate()) {
+            Craft::info('Transaction not saved due to validation error.', __METHOD__);
+
+            return false;
+        }
+
+        $fields = [
+            'orderId',
+            'hash',
+            'gatewayId',
+            'vendorId',
+            'type',
+            'status',
+            'amount',
+            'currency',
+            'paymentAmount',
+            'paymentCurrency',
+            'paymentRate',
+            'reference',
+            'message',
+            'note',
+            'code',
+            'response',
+            'userId',
+            'parentId'
+        ];
+
+        $record = new TransactionRecord();
+
+        foreach ($fields as $field) {
+            $record->$field = $model->$field;
+        }
+
+        $record->save(false);
+        $model->id = $record->id;
+
+        if ($model->status === TransactionRecord::STATUS_SUCCESS) {
+            $model->order->updateOrderPaidInformation();
+        }
+
+        if ($model->status === TransactionRecord::STATUS_PROCESSING) {
+            $model->order->markAsComplete();
+        }
+
+        // Raise 'afterSaveTransaction' event
+        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_TRANSACTION)) {
+            $this->trigger(self::EVENT_AFTER_SAVE_TRANSACTION, new TransactionEvent([
+                'transaction' => $model
+            ]));
+        }
+
+        return true;
     }
 }

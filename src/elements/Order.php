@@ -85,6 +85,30 @@ class Order extends CommerceOrder
     }
 
     /**
+     * Returns the total `purchase` and `captured` transactions belonging to this order.
+     *
+     * @return float
+     */
+    public function getTotalPaid(): float
+    {
+        return Plugin::getInstance()->getPayments()->getTotalPaidForOrder($this);
+    }
+
+    /**
+     * @inheritdoc
+     * Note suborders are outstanding if the total paid is less than the vendor total
+     * @author Josh Smith <josh@batch.nz>
+     * @return float
+     */
+    public function getOutstandingBalance(): float
+    {
+        $totalPaid = Currency::round($this->getTotalPaid());
+        $totalPrice = $this->getVendorTotal(); // Already rounded
+
+        return $totalPrice - $totalPaid;
+    }
+
+    /**
      * @return OrderAdjustment[]
      */
     public function getAdjustments(): array
@@ -222,12 +246,14 @@ class Order extends CommerceOrder
      */
     public function setOrder(CommerceOrder $order)
     {
+        $gateway = $order->getGateway();
+
         // Map commerce order properties onto this object
         $this->couponCode = $order->couponCode;
         $this->dateOrdered = $order->dateOrdered;
         $this->datePaid = $order->datePaid;
         $this->currency = $order->currency;
-        $this->gatewayId = $order->gatewayId;
+        $this->gatewayId = empty($gateway) ? null : $gateway->id;
         $this->lastIp = $order->lastIp;
         $this->orderLanguage = $order->orderLanguage;
         $this->message = $order->message;
@@ -276,8 +302,8 @@ class Order extends CommerceOrder
             $orderRecord = new OrderRecord();
             $orderRecord->id = $this->id;
         }
-        // $orderRecord->datePaid = $this->datePaid ?: null;
 
+        $orderRecord->datePaid = $this->datePaid ?: null;
         $orderRecord->commerceOrderId = $this->commerceOrderId;
         $orderRecord->vendorId = $this->vendorId;
         $orderRecord->orderStatusId = $this->orderStatusId;
@@ -285,8 +311,6 @@ class Order extends CommerceOrder
         $orderRecord->number = $this->number;
         $orderRecord->reference = $this->reference;
         $orderRecord->total = $this->getTotal();
-
-        // $orderRecord->totalPrice = $this->getTotalPrice();
         $orderRecord->totalPaid = $this->getTotalPaid();
         $orderRecord->paidStatus = $this->getPaidStatus();
 

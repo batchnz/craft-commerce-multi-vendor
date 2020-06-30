@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2019 Josh Smith
  */
 
-namespace batchnz\craftcommercemultivendor\assetbundles\CraftCommerceMultiVendor;
+namespace batchnz\craftcommercemultivendor\assetbundles\craftcommercemultivendor;
 
 use Craft;
 use craft\web\AssetBundle;

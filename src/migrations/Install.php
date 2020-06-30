@@ -72,6 +72,7 @@ class Install extends Migration
                 'isCompleted' => $this->boolean(),
                 'total' => $this->decimal(14,4),
                 'totalPaid' => $this->decimal(14,4),
+                'datePaid' => $this->dateTime(),
                 'paidStatus' => $this->enum('type', ['paid','partial','unpaid','overPaid'])->notNull(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
@@ -83,13 +84,13 @@ class Install extends Migration
         if( $transactionTableSchema === null ) {
             $this->createTable(Transaction::tableName(), [
                 'id' => $this->primaryKey(),
-                'commerceTransactionId' => $this->integer()->notNull(),
                 'orderId' => $this->integer()->notNull(),
                 'parentId' => $this->integer(),
                 'gatewayId' => $this->integer(),
+                'userId' => $this->integer(),
                 'vendorId' => $this->integer(),
                 'hash' => $this->string(32),
-                'type' => $this->enum('type', ['authorize', 'capture', 'purchase', 'refund'])->notNull(),
+                'type' => $this->enum('type', ['authorize', 'capture', 'purchase', 'refund', 'transfer'])->notNull(),
                 'amount' => $this->decimal(14, 4),
                 'paymentAmount' => $this->decimal(14, 4),
                 'currency' => $this->string(),

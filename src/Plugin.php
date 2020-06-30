@@ -57,6 +57,8 @@ use craft\commerce\models\Email as EmailModel;
 use craft\commerce\records\Email;
 use craft\commerce\services\OrderHistories;
 use craft\commerce\services\Payments;
+use craft\commerce\stripe\base\Gateway as StripeGateway;
+use craft\commerce\stripe\events\BuildGatewayRequestEvent;
 
 use yii\BaseYii;
 use yii\base\Event;
@@ -105,7 +107,7 @@ class Plugin extends CraftPlugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.4';
+    public $schemaVersion = '1.0.7';
 
     /**
      * Plugin initialisation
@@ -288,6 +290,9 @@ class Plugin extends CraftPlugin
             'commerce-multi-vendor/settings/orderstatuses' => self::PLUGIN_HANDLE.'/order-statuses/index',
             'commerce-multi-vendor/settings/orderstatuses/<id:\d+>' =>  self::PLUGIN_HANDLE.'/order-statuses/edit',
 
+            // Payment routes
+            'commerce-multi-vendor/payments/transfer' => self::PLUGIN_HANDLE.'/payments/transfer',
+
             // Vendor routes
             'commerce/vendors' => self::PLUGIN_HANDLE.'/vendors/vendor-index',
             'commerce/vendors/<vendorId:\d+>' => self::PLUGIN_HANDLE.'/vendors/edit-vendor',
@@ -379,6 +384,13 @@ class Plugin extends CraftPlugin
          */
         Event::on(OrderHistories::class, OrderHistories::EVENT_ORDER_STATUS_CHANGE, function(OrderStatusEvent $e) {
             $this->getOrderStatuses()->handleOrderStatusChangeEvent($e);
+        });
+
+        /**
+         * We use this event to add connect transfer group details to the Stripe request
+         */
+        Event::on(StripeGateway::class, StripeGateway::EVENT_BUILD_GATEWAY_REQUEST, function(BuildGatewayRequestEvent $e) {
+            $this->getPayments()->handleBuildGatewayRequestEvent($e);
         });
     }
 
