@@ -51,10 +51,12 @@ use craft\web\View;
 use craft\commerce\Plugin as CommercePlugin;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Order;
+use craft\commerce\events\LineItemEvent;
 use craft\commerce\events\OrderStatusEvent;
 use craft\commerce\events\ProcessPaymentEvent;
 use craft\commerce\models\Email as EmailModel;
 use craft\commerce\records\Email;
+use craft\commerce\services\LineItems;
 use craft\commerce\services\OrderHistories;
 use craft\commerce\services\Payments;
 use craft\commerce\stripe\base\Gateway as StripeGateway;
@@ -398,6 +400,13 @@ class Plugin extends CraftPlugin
          */
         Event::on(StripeGateway::class, StripeGateway::EVENT_BUILD_GATEWAY_REQUEST, function(BuildGatewayRequestEvent $e) {
             $this->getPayments()->handleBuildGatewayRequestEvent($e);
+        });
+
+        /**
+         * Adds Vendor purchasable price into the line item snapshot
+         */
+        Event::on(LineItems::class, LineItems::EVENT_POPULATE_LINE_ITEM, function(LineItemEvent $e) {
+            $this->getLineItems()->handlePopulateLineItemEvent($e);
         });
     }
 

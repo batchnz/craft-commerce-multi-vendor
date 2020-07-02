@@ -103,7 +103,7 @@ class Order extends CommerceOrder
     public function getOutstandingBalance(): float
     {
         $totalPaid = Currency::round($this->getTotalPaid());
-        $totalPrice = $this->getVendorTotal(); // Already rounded
+        $totalPrice = $this->getVendorSubTotal(); // Already rounded
 
         return $totalPrice - $totalPaid;
     }
@@ -174,7 +174,8 @@ class Order extends CommerceOrder
     {
         $total = 0;
         foreach ($this->getLineItems() as $lineItem) {
-            $total += (($lineItem->snapshot['price'] * $lineItem->qty) + $lineItem->getAdjustmentsTotal());
+            $vendorPrice = $lineItem->snapshot['vendorPrice'] ?? $lineItem->snapshot['price'];
+            $total += (($vendorPrice * $lineItem->qty) + $lineItem->getAdjustmentsTotal());
         }
 
         return Currency::round($total);
@@ -189,7 +190,8 @@ class Order extends CommerceOrder
     {
         $total = 0;
         foreach ($this->getLineItems() as $lineItem) {
-            $total += ($lineItem->snapshot['price'] * $lineItem->qty);
+            $vendorPrice = $lineItem->snapshot['vendorPrice'] ?? $lineItem->snapshot['price'];
+            $total += ($vendorPrice * $lineItem->qty);
         }
 
         return Currency::round($total);

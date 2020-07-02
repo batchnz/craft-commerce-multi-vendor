@@ -2,6 +2,8 @@
 
 namespace batchnz\craftcommercemultivendor\services;
 
+use batchnz\craftcommercemultivendor\Plugin;
+use batchnz\craftcommercemultivendor\events\CapturePlatformSnapshotEvent;
 use batchnz\craftcommercemultivendor\records\Order as OrderRecord;
 use batchnz\craftcommercemultivendor\records\Vendor as VendorRecord;
 
@@ -10,6 +12,7 @@ use craft\db\Query;
 use craft\db\Table;
 use craft\helpers\Json;
 use craft\commerce\db\Table as CommerceTable;
+use craft\commerce\events\LineItemEvent;
 use craft\commerce\models\LineItem;
 use yii\base\Component;
 
@@ -21,6 +24,11 @@ use yii\base\Component;
  */
 class LineItems extends Component
 {
+    // Constants
+    // =========================================================================
+
+    const EVENT_CAPTURE_PLATFORM_SNAPSHOT = 'capturePlatformSnapshot';
+
     /**
      * @var LineItem[]
      */
@@ -55,6 +63,35 @@ class LineItems extends Component
         }
 
         return $this->_lineItemsByOrderId[$orderId];
+    }
+
+    /**
+     * Handle the populate line item event
+     * @author Josh Smith <josh@batch.nz>
+     * @param  LineItemEvent $e
+     * @return void
+     */
+    public function handlePopulateLineItemEvent(LineItemEvent $e)
+    {
+        $lineItem = $e->lineItem;
+        $purchasable = $lineItem->getPurchasable();
+
+        // Calculate the initial platform fee
+        $platformFee = Plugin::getInstance()->getPlatform()->calcCommission($purchasable->getSalePrice());
+
+        // Store the original purchasable price as the vendor price
+        // This is so we can refer back to it later amid pricing changes.
+        $lineItem->snapshot['vendorPrice'] = $purchasable->getPrice();
+        $lineItem->snapshot['vendorSalePrice'] = $purchasable->getSalePrice();
+        $lineItem->snapshot['vendorSaleAmount'] = $lineItem->saleAmount;
+        $lineItem->snapshot['platformFee'] = $platformFee;
+
+        // Fire a 'capturePlatformSnapshot' event
+        // Todo: Implement a Vendor capture snapshot event similar to how Variant and Product fields are captured.
+        $event = new CapturePlatformSnapshotEvent([
+            'lineItem' => $lineItem
+        ]);
+        $this->trigger(self::EVENT_CAPTURE_PLATFORM_SNAPSHOT, $event);
     }
 
     // Private methods
