@@ -32,7 +32,7 @@ class LineItems extends Component
     /**
      * @var LineItem[]
      */
-    private $_lineItemsByOrderId = [];
+    private $_lineItemsByOrderAndVendorId = [];
 
     // Public Methods
     // =========================================================================
@@ -45,7 +45,8 @@ class LineItems extends Component
      */
     public function getAllLineItemsByOrderAndVendorId(int $orderId, int $vendorId): array
     {
-        if (!isset($this->_lineItemsByOrderId[$orderId])) {
+        $key = $orderId.'-'.$vendorId;
+        if (!isset($this->_lineItemsByOrderAndVendorId[$key])) {
             $results = $this->_createLineItemWithVendorsQuery()
                 ->where([
                     'orderId' => $orderId,
@@ -54,15 +55,15 @@ class LineItems extends Component
                 ->orderBy('dateCreated DESC')
                 ->all();
 
-            $this->_lineItemsByOrderId[$orderId] = [];
+            $this->_lineItemsByOrderAndVendorId[$key] = [];
 
             foreach ($results as $result) {
                 $result['snapshot'] = Json::decodeIfJson($result['snapshot']);
-                $this->_lineItemsByOrderId[$orderId][] = new LineItem($result);
+                $this->_lineItemsByOrderAndVendorId[$key][] = new LineItem($result);
             }
         }
 
-        return $this->_lineItemsByOrderId[$orderId];
+        return $this->_lineItemsByOrderAndVendorId[$key];
     }
 
     /**
