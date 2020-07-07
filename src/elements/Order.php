@@ -13,6 +13,7 @@ namespace batchnz\craftcommercemultivendor\elements;
 use batchnz\craftcommercemultivendor\Plugin;
 use batchnz\craftcommercemultivendor\db\OrderQuery;
 use batchnz\craftcommercemultivendor\records\Order as OrderRecord;
+use batchnz\craftcommercemultivendor\records\OrderAdjustment as OrderAdjustmentRecord;
 
 use Craft;
 use craft\base\Element;
@@ -72,6 +73,11 @@ class Order extends CommerceOrder
     private $_orderAdjustments;
 
     /**
+     * @var bool Should the order recalculate?
+     */
+    private $_recalculate = true;
+
+    /**
      * @inheritdoc
      */
     public function init()
@@ -96,16 +102,31 @@ class Order extends CommerceOrder
 
     /**
      * @inheritdoc
-     * Note suborders are outstanding if the total paid is less than the vendor total
-     * @author Josh Smith <josh@batch.nz>
-     * @return float
      */
-    public function getOutstandingBalance(): float
+    public function recalculate()
     {
-        $totalPaid = Currency::round($this->getTotalPaid());
-        $totalPrice = $this->getVendorSubTotal(); // Already rounded
+        // Check if the order needs to recalculated
+        if (!$this->id || $this->isCompleted || !$this->getShouldRecalculateAdjustments() || $this->hasErrors()) {
+            return;
+        }
 
-        return $totalPrice - $totalPaid;
+        // Reset adjustments
+        $this->setAdjustments([]);
+
+        foreach (Plugin::getInstance()->getOrderAdjustments()->getAdjusters() as $adjuster) {
+            /** @var AdjusterInterface $adjuster */
+            $adjuster = new $adjuster();
+            $adjustments = $adjuster->adjust($this);
+            $this->setAdjustments(array_merge($this->getAdjustments(), $adjustments));
+        }
+    }
+
+    /**
+     * @param OrderAdjustment[] $adjustments
+     */
+    public function setAdjustments(array $adjustments)
+    {
+        $this->_orderAdjustments = $adjustments;
     }
 
     /**
@@ -113,22 +134,21 @@ class Order extends CommerceOrder
      */
     public function getAdjustments(): array
     {
-        if( empty($this->_orderAdjustments) ){
-            $lineItems = $this->getLineItems();
-            $orderAdjustments = $this->_commerceOrder->getAdjustments();
-
-            // Filter out adjustments that don't match line items on this order
-            $lineItemIds = array_column($lineItems, 'id');
-            foreach ($orderAdjustments as $i => $orderAdjustment) {
-                if( !in_array($orderAdjustment->lineItemId, $lineItemIds) ){
-                    unset($orderAdjustments[$i]);
-                }
-            }
-
-            $this->_orderAdjustments = $orderAdjustments;
+        if (null === $this->_orderAdjustments) {
+            $this->setAdjustments(Plugin::getInstance()->getOrderAdjustments()->getAllOrderAdjustmentsByOrderId($this->id));
         }
 
         return $this->_orderAdjustments;
+    }
+
+    /**
+     * Todo: Implement shipping rates for sub orders
+     * @author Josh Smith <josh@batch.nz>
+     * @return array
+     */
+    public function getAvailableShippingMethods(): array
+    {
+        return [];
     }
 
     /**
@@ -166,32 +186,15 @@ class Order extends CommerceOrder
     }
 
     /**
-     * Returns the original product price with adjustments
-     * @author Josh Smith <josh@batch.nz>
-     * @return float
-     */
-    public function getVendorTotal()
-    {
-        $total = 0;
-        foreach ($this->getLineItems() as $lineItem) {
-            $vendorPrice = $lineItem->snapshot['vendorPrice'] ?? $lineItem->snapshot['price'];
-            $total += (($vendorPrice * $lineItem->qty) + $lineItem->getAdjustmentsTotal());
-        }
-
-        return Currency::round($total);
-    }
-
-    /**
      * Returns the original product price without any adjustments
      * @author Josh Smith <josh@batch.nz>
      * @return float
      */
-    public function getVendorSubTotal()
+    public function getSubTotal()
     {
         $total = 0;
         foreach ($this->getLineItems() as $lineItem) {
-            $vendorPrice = $lineItem->snapshot['vendorPrice'] ?? $lineItem->snapshot['price'];
-            $total += ($vendorPrice * $lineItem->qty);
+            $total += ($lineItem->price * $lineItem->qty);
         }
 
         return Currency::round($total);
@@ -293,6 +296,8 @@ class Order extends CommerceOrder
      */
     public function afterSave(bool $isNew)
     {
+        $this->recalculate();
+
         if (!$isNew) {
             $orderRecord = OrderRecord::findOne($this->id);
 
@@ -317,6 +322,8 @@ class Order extends CommerceOrder
 
         $orderRecord->save(false);
 
+        $this->_saveAdjustments();
+
         return Element::afterSave($isNew);
     }
 
@@ -330,5 +337,35 @@ class Order extends CommerceOrder
         }
 
         return Craft::$app->getUser()->checkPermission('commerce-multi-vendor-manageOrders');
+    }
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    private function _saveAdjustments()
+    {
+        $previousAdjustments = OrderAdjustmentRecord::find()
+            ->where(['orderId' => $this->id])
+            ->all();
+
+        $newAdjustmentIds = [];
+
+        foreach ($this->getAdjustments() as $adjustment) {
+            // Don't run validation as validation of the adjustments should happen before saving the order
+            Plugin::getInstance()->getOrderAdjustments()->saveOrderAdjustment($adjustment, false);
+            $newAdjustmentIds[] = $adjustment->id;
+            $adjustment->orderId = $this->id;
+        }
+
+        foreach ($previousAdjustments as $previousAdjustment) {
+            if (!in_array($previousAdjustment->id, $newAdjustmentIds, false)) {
+                $previousAdjustment->delete();
+            }
+        }
+
+        return null;
     }
 }

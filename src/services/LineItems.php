@@ -59,6 +59,8 @@ class LineItems extends Component
 
             foreach ($results as $result) {
                 $result['snapshot'] = Json::decodeIfJson($result['snapshot']);
+                $result['price'] = $result['snapshot']['vendorPrice'];
+                $result['salePrice'] = $result['snapshot']['vendorSalePrice'];
                 $this->_lineItemsByOrderAndVendorId[$key][] = new LineItem($result);
             }
         }

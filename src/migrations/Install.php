@@ -8,6 +8,7 @@ use craft\helpers\MigrationHelper;
 use craft\commerce\db\Table;
 use batchnz\craftcommercemultivendor\records\Email;
 use batchnz\craftcommercemultivendor\records\Order;
+use batchnz\craftcommercemultivendor\records\OrderAdjustment;
 use batchnz\craftcommercemultivendor\records\OrderStatusEmail;
 use batchnz\craftcommercemultivendor\records\PlatformSettings;
 use batchnz\craftcommercemultivendor\records\Transaction;
@@ -77,6 +78,25 @@ class Install extends Migration
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid()
+            ]);
+        }
+
+        $orderAdjustmentsTableSchema = Craft::$app->db->schema->getTableSchema(OrderAdjustment::tableName());
+        if( $orderAdjustmentsTableSchema === null ) {
+            $this->createTable(OrderAdjustment::tableName(), [
+                'id' => $this->primaryKey(),
+                'orderId' => $this->integer()->notNull(),
+                'lineItemId' => $this->integer(),
+                'type' => $this->string()->notNull(),
+                'name' => $this->string(),
+                'description' => $this->string(),
+                'amount' => $this->decimal(14, 4)->notNull(),
+                'included' => $this->boolean(),
+                'isEstimated' => $this->boolean()->notNull()->defaultValue(false),
+                'sourceSnapshot' => $this->longText(),
+                'dateCreated' => $this->dateTime()->notNull(),
+                'dateUpdated' => $this->dateTime()->notNull(),
+                'uid' => $this->uid(),
             ]);
         }
 

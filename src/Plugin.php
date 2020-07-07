@@ -109,7 +109,7 @@ class Plugin extends CraftPlugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.7';
+    public $schemaVersion = '1.0.8';
 
     /**
      * Plugin initialisation
@@ -322,12 +322,6 @@ class Plugin extends CraftPlugin
         Event::on(Plugins::class, Plugins::EVENT_AFTER_LOAD_PLUGINS, function(Event $event){
             $this->_registerRoutes();
             $this->_extendRoutes();
-
-            // if( Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->getRequest()->getParam('sendEmail') === '1' ){
-            //     $orderHistory = OrderHistory::find()->where(['id' => 33])->one();
-            //     $order = Order::find()->id(51241)->one();
-            //     self::getOrderStatuses()->statusChangeHandler($order, $orderHistory);
-            // }
         });
     }
 

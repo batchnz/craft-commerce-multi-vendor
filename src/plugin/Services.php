@@ -5,6 +5,7 @@ namespace batchnz\craftcommercemultivendor\plugin;
 use batchnz\craftcommercemultivendor\services\Emails;
 use batchnz\craftcommercemultivendor\services\LineItems;
 use batchnz\craftcommercemultivendor\services\Orders;
+use batchnz\craftcommercemultivendor\services\OrderAdjustments;
 use batchnz\craftcommercemultivendor\services\OrderStatuses;
 use batchnz\craftcommercemultivendor\services\Payments;
 use batchnz\craftcommercemultivendor\services\Platform;
@@ -51,6 +52,16 @@ trait Services
     public function getOrders(): Orders
     {
         return $this->get('orders');
+    }
+
+    /**
+     * Returns the order adjustmentes service
+     * @author Josh Smith <josh@batch.nz>
+     * @return Orders The Order adjustments service
+     */
+    public function getOrderAdjustments(): OrderAdjustments
+    {
+        return $this->get('orderAdjustments');
     }
 
     /**
@@ -135,6 +146,7 @@ trait Services
             'emails' => Emails::class,
             'lineItems' => LineItems::class,
             'orders' => Orders::class,
+            'orderAdjustments' => OrderAdjustments::class,
             'orderStatuses' => OrderStatuses::class,
             'payments' => Payments::class,
             'platform' => Platform::class,

@@ -46,8 +46,8 @@ class Transactions extends CommerceTransactions
         $transaction->vendorId = $order->vendorId;
 
         // Set the vendor amount on the transaction
-        // This is the amount the vendor will receive minus NZBEX fees, freight, FAF etc.
-        $transaction->amount = $order->getVendorSubTotal();
+        // This is the amount the vendor will receive minus NZBEX fees, freight, FAF etc. but including GST.
+        $transaction->amount = $order->getTotal();
 
         if( $commerceTransaction->orderId ){
             $transaction->setOrder($commerceTransaction->getOrder());

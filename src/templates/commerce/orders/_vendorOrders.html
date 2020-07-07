@@ -36,7 +36,8 @@
                             { label: "Sale Amount", value: lineItem.saleAmount|currency(subOrder.currency) },
                             { label: "Sale Price", value: lineItem.snapshot.vendorSalePrice|currency(subOrder.currency) },
                             { label: "Quantity", value: lineItem.qty },
-                            { label: "Total", value: (lineItem.snapshot.vendorSalePrice * lineItem.qty)|currency(subOrder.currency) },
+                            { label: "Sub-total", value: lineItem.subtotal|currency(order.currency) },
+                            { label: "Total", value: lineItem.total|currency(subOrder.currency) },
                         ] %}
 
                         <tr class="infoRow" data-id="{{ lineItem.id }}" data-info="{{ info|json_encode }}">
@@ -87,6 +88,22 @@
                                           href="#"></span>
                             </td>
                         </tr>
+                        {% for adjustment in lineItem.adjustments %}
+                            <tr>
+                                <td></td>
+                                <td>
+                                    <strong>{{ adjustment.type|title|t('commerce') }} {{ "Adjustment"|t('commerce') }}</strong><br>{{ adjustment.name|title }}
+                                    <span class="info"><strong>{{ adjustment.type|title|t('commerce') }} {{ "Adjustment"|t('commerce') }}</strong><br> {{ adjustment.description }}</span>
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>
+                                    <span class="right">{{ adjustment.amount|currency(order.currency) }}</span>
+                                </td>
+                                <td></td>
+                            </tr>
+                        {% endfor %}
                     {% endfor %}
                     <tr>
                         <td></td>
@@ -100,7 +117,7 @@
                         <td></td>
                         <td><h2>{{ "Total Price"|t('commerce') }}</h2></td>
                         <td>
-                            <h2 class="right">{{ subOrder.vendorSubTotal|currency(subOrder.currency) }}</h2>
+                            <h2 class="right">{{ subOrder.total|currency(subOrder.currency) }}</h2>
                         </td>
                         <td></td>
                     </tr>
@@ -117,7 +134,7 @@
                             {% if subOrder.isPaid %}
                                 <span class="commerceStatusLabel"><span class="status green"></span> Order Completed</span>
                             {% else %}
-                                <button data-amount="{{ subOrder.vendorSubTotal|currency(subOrder.currency) }}" data-vendor="{{ vendor.name }}" class="js--transfer btn submit">Transfer {{ subOrder.vendorSubTotal|currency(subOrder.currency) }}</button>
+                                <button data-amount="{{ subOrder.total|currency(subOrder.currency) }}" data-vendor="{{ vendor.name }}" class="js--transfer btn submit">Transfer {{ subOrder.total|currency(subOrder.currency) }}</button>
                             {% endif %}
                         </form>
                     {% else %}
