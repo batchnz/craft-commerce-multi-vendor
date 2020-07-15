@@ -125,6 +125,7 @@ class VendorsController extends BaseVendorController
         $request = Craft::$app->getRequest();
         $vendorId = $request->getBodyParam('vendorId');
         $siteId = $request->getBodyParam('siteId');
+        $user = Craft::$app->getUser();
 
         if ($vendorId) {
             $vendor = Plugin::getInstance()->getVendors()->getVendorById($vendorId, $siteId);
@@ -136,9 +137,15 @@ class VendorsController extends BaseVendorController
             $vendor = new Vendor();
         }
 
+        // Only allow admin users to change vendor enabled status
+        if( $user->getIsAdmin() ){
+          $vendor->enabled = (bool) $request->getBodyParam('enabled');
+        } else {
+          $vendor->enabled = (bool) $vendor->enabled;
+        }
+
         $vendor->typeId = $request->getBodyParam('typeId');
         $vendor->siteId = $siteId ?? $vendor->siteId;
-        $vendor->enabled = (bool)$request->getBodyParam('enabled');
         if (($postDate = $request->getBodyParam('postDate')) !== null) {
             $vendor->postDate = DateTimeHelper::toDateTime($postDate) ?: null;
         }
