@@ -369,7 +369,7 @@ class Plugin extends CraftPlugin
         });
 
         /**
-         * We use this event to route funds between the vendor accounts
+         * We use this event to create vendor orders
          */
         Event::on(Order::class, Order::EVENT_BEFORE_COMPLETE_ORDER, function(Event $e) {
             $this->getOrders()->handleBeforeCompleteOrderEvent($e);

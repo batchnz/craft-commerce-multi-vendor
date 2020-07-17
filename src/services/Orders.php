@@ -195,7 +195,8 @@ class Orders extends Component
             'number' => Commerce::getInstance()->getCarts()->generateCartNumber()
         ]);
 
-        $suborder->reference = $this->generateReference($suborder);
+        $variables = compact('order');
+        $suborder->reference = $this->generateReference($suborder, $variables);
 
         return $suborder;
     }
@@ -204,15 +205,16 @@ class Orders extends Component
      * Generates a reference from an order
      * @author Josh Smith <josh@batch.nz>
      * @param  SubOrder $order
+     * @param  array    $variables
      * @return string
      */
-    public function generateReference(SubOrder $order)
+    public function generateReference(SubOrder $order, array $variables = [])
     {
         $reference = '';
         $referenceTemplate = Plugin::getInstance()->getSettings()->orderReferenceFormat;
 
         try {
-            $reference = Craft::$app->getView()->renderObjectTemplate($referenceTemplate, $order);
+            $reference = Craft::$app->getView()->renderObjectTemplate($referenceTemplate, $order, $variables);
         } catch (Throwable $exception) {
             Craft::error('Unable to generate order reference for order ID: ' . $order->id . ', with format: ' . $referenceTemplate . ', error: ' . $exception->getMessage());
             throw $exception;
