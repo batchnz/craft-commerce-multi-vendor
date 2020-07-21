@@ -189,8 +189,8 @@ class Emails extends CommerceEmails {
             $orderLanguage = $order->orderLanguage ?: $originalLanguage;
             Craft::$app->language = $orderLanguage;
 
-            if ($order->getVendor()) {
-                $newEmail->setTo($order->getEmail());
+            if ($vendor) {
+                $newEmail->setTo($vendor->getEmail());
             }
         }
 

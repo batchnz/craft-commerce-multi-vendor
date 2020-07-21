@@ -349,6 +349,17 @@ class Vendor extends Element
     }
 
     /**
+     * Returns the email address for this vendor
+     * @author Josh Smith <josh@batch.nz>
+     * @return string
+     */
+    public function getEmail()
+    {
+        $user = $this->getUser();
+        return $user ? $user->email : null;
+    }
+
+    /**
      * @inheritdoc
      */
     public function getIsEditable(): bool
