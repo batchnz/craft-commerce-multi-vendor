@@ -71,6 +71,10 @@ class Payments extends Component
         $transaction->type = TransactionRecord::TYPE_TRANSFER;
         $vendor = $order->getVendor();
 
+        if( empty($vendor->stripe_user_id) ){
+            throw new PaymentException("Error: $vendor->name is not connected to Stripe Connect.", 500);
+        }
+
         try {
             // Transfer the vendor payout to their Stripe account
             $transfer = \Stripe\Transfer::create([
