@@ -18,6 +18,7 @@ class m200629_220248_multi_vendor_transactions_schema_updates extends Migration
      */
     public function safeUp()
     {
+        $this->dropForeignKey('commerce_multivendor_transactions_commerceTransactionId_fk', Transaction::tableName());
         $this->dropColumn(Transaction::tableName(), 'commerceTransactionId');
         $this->addColumn(Transaction::tableName(), 'userId', $this->integer()->after('gatewayId'));
         $this->addForeignKey(null, Transaction::tableName(), ['userId'], Table::USERS, ['id']);
