@@ -47,6 +47,22 @@ class Orders extends Component
     // =========================================================================
 
     /**
+     * Handles an order deletion event
+     * @author Josh Smith <josh@batch.nz>
+     * @param  Event  $e
+     * @return void
+     */
+    public function handleAfterDeleteOrderEvent(Event $e)
+    {
+        $subOrders = SubOrder::find()->where(['commerceOrderId' => $e->sender->id])->all();
+        if( empty($subOrders) ) return;
+
+        foreach ($subOrders as $subOrder) {
+            Craft::$app->getElements()->deleteElement($subOrder);
+        }
+    }
+
+    /**
      * Handles an order completion event
      * @author Josh Smith <josh@batch.nz>
      * @param  Event $e

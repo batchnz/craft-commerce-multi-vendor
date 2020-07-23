@@ -364,6 +364,16 @@ class Plugin extends CraftPlugin
 
     private function _registerEventHandlers()
     {
+        /**
+         * Handle after order save event
+         */
+        Event::on(Order::class, Element::EVENT_AFTER_DELETE, function(Event $e) {
+            $this->getOrders()->handleAfterDeleteOrderEvent($e);
+        });
+
+        /**
+         * Handle before product save event
+         */
         Event::on(Product::class, Element::EVENT_BEFORE_SAVE, function(ModelEvent $e) {
             $this->getProducts()->handleBeforeSaveEvent($e);
         });
