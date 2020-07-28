@@ -9,6 +9,7 @@
         {% set vendor = subOrder.vendor %}
 
         <h1>{{vendor.name}}</h1>
+        <h2>#{{subOrder.reference}}</h2>
 
         {% if subOrder.lineItems | length or subOrder.totalPrice > 0 %}
             <div style="margin-bottom: 32px;" class="order-details pane">
