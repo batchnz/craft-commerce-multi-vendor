@@ -17,11 +17,17 @@ use batchnz\craftcommercemultivendor\records\OrderAdjustment as OrderAdjustmentR
 
 use Craft;
 use craft\base\Element;
+use craft\db\Query;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\Db;
 use craft\helpers\UrlHelper;
 use craft\web\View;
 use craft\commerce\elements\Order as CommerceOrder;
+use craft\commerce\errors\OrderStatusException;
 use craft\commerce\helpers\Currency;
+use yii\base\Exception;
+
+use DateTime;
 
 /**
  * Order Element
@@ -119,6 +125,76 @@ class Order extends CommerceOrder
             $adjustments = $adjuster->adjust($this);
             $this->setAdjustments(array_merge($this->getAdjustments(), $adjustments));
         }
+    }
+
+     /**
+     * Same as parent class except we don't write an order reference
+     * @inheritdoc
+     * @see services\Orders::generateReference  For the reference generation
+     */
+    public function markAsComplete(): bool
+    {
+        // Use a mutex to make sure we check the order is not already complete due to a race condition.
+        $lockName = 'multiVendorOrderComplete:' . $this->id;
+        $mutex = Craft::$app->getMutex();
+        if (!$mutex->acquire($lockName, 5)) {
+            throw new Exception('Unable to acquire a lock for completion of Order: ' . $this->id);
+        }
+
+        // Now that we have a lock, make sure this order is not already completed.
+        if ($this->isCompleted) {
+            $mutex->release($lockName);
+            return true;
+        }
+
+        // Try to catch where the order could be marked as completed twice at the same time, and thus cause a race condition.
+        $completedInDb = (new Query())
+            ->select('id')
+            ->from([OrderRecord::tableName()])
+            ->where(['isCompleted' => true])
+            ->andWhere(['id' => $this->id])
+            ->exists();
+
+        if ($completedInDb) {
+            $mutex->release($lockName);
+            return true;
+        }
+
+        $this->isCompleted = true;
+        $this->dateOrdered = Db::prepareDateForDb(new DateTime());
+
+        // Reset estimated address relations
+        $this->estimatedShippingAddressId = null;
+        $this->estimatedBillingAddressId = null;
+
+        $orderStatus = Plugin::getInstance()->getOrderStatuses()->getDefaultOrderStatusForOrder($this);
+
+        // If the order status returned was overridden by a plugin, use the configured default order status if they give us a bogus one with no ID.
+        if ($orderStatus && $orderStatus->id) {
+            $this->orderStatusId = $orderStatus->id;
+        } else {
+            throw new OrderStatusException('Could not find a valid default order status.');
+        }
+
+        // Raising the 'beforeCompleteOrder' event
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_COMPLETE_ORDER)) {
+            $this->trigger(self::EVENT_BEFORE_COMPLETE_ORDER);
+        }
+
+        $success = Craft::$app->getElements()->saveElement($this, false);
+
+        $mutex->release($lockName);
+
+        if (!$success) {
+            Craft::error(Craft::t(Plugin::PLUGIN_HANDLE, 'Could not mark order {number} as complete. Order save failed during order completion with errors: {order}',
+                ['number' => $this->number, 'order' => json_encode($this->errors)]), __METHOD__);
+
+            return false;
+        }
+
+        parent::afterOrderComplete();
+
+        return true;
     }
 
     /**
