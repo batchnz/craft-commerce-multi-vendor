@@ -1,0 +1,43 @@
+{
+  "name": "@batch/craft-commerce-multi-vendor",
+  "version": "1.0.0",
+  "description": "Multi vendor plugin for Craft CMS 3.X",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "commit": "batch-commit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/batchnz/craft-commerce-multi-vendor.git"
+  },
+  "keywords": [
+    "Batch",
+    "Craft",
+    "CMS",
+    "Multi",
+    "Vendor"
+  ],
+  "author": "Josh Smith <josh@batch.nz>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/batchnz/craft-commerce-multi-vendor/issues"
+  },
+  "homepage": "https://github.com/batchnz/craft-commerce-multi-vendor#readme",
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS --config=\"./node_modules/@batch/git-tools/.commitlintrc.js\""
+    }
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "release": {
+    "extends": "@batch/semantic-release-gitlab-config"
+  },
+  "devDependencies": {
+    "@batch/git-tools": "^1.0.5"
+  }
+}
