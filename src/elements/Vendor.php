@@ -470,6 +470,18 @@ class Vendor extends Element
         return !empty($this->stripe_user_id);
     }
 
+    /**
+     * Returns the set of fields when this element has toArray called on it
+     * @author Josh Smith <josh@batch.nz>
+     * @return array
+     */
+    public function fields()
+    {
+        return array_filter(parent::fields(), function($key){
+            return strpos($key, 'stripe_') !== 0;
+        }, ARRAY_FILTER_USE_KEY);
+    }
+
     // Indexes, etc.
     // -------------------------------------------------------------------------
 
